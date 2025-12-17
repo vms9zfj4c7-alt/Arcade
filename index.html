@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate - Mobile Fix (V8)</title>
+    <title>Arcade Ultimate - Mobile Fix (V9)</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -31,10 +31,9 @@
             width: 100%;
             user-select: none;
             overflow-x: hidden;
-            /* CORRECTION SCROLL : On autorise le scroll vertical */
             overflow-y: auto; 
-            touch-action: pan-y; /* Autorise le scroll vertical au doigt */
-            padding-bottom: 50px; /* Marge pour le bas du téléphone */
+            touch-action: pan-y;
+            padding-bottom: 100px; /* Plus d'espace pour les contrôles */
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -53,7 +52,7 @@
             width: 90%; 
             max-width: 500px; 
             animation: fadeIn 0.5s ease-out;
-            margin: 40px auto; /* Marge pour ne pas coller aux bords */
+            margin: 40px auto;
             box-sizing: border-box;
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -129,8 +128,7 @@
             top: 0; left: 0;
             background-color: var(--bg-color);
             padding-top: 60px;
-            /* Espace en bas pour ne pas cacher le jeu avec les controles */
-            padding-bottom: 160px; 
+            padding-bottom: 200px; /* Plus d'espace en bas pour les contrôles */
             box-sizing: border-box;
             z-index: 10;
         }
@@ -147,7 +145,6 @@
             max-height: 65vh;
             height: auto;
             width: auto;
-            /* Empêche de scroller en touchant le jeu */
             touch-action: none; 
         }
 
@@ -161,22 +158,38 @@
         .p1-score { color: #e74c3c; border-bottom: 3px solid #e74c3c; } .p2-score { color: #3498db; border-bottom: 3px solid #3498db; } .p2-score-c4 { color: #f1c40f; border-bottom: 3px solid #f1c40f; }
 
         /* GRIDS & CELLS */
-        #grid, .dynamic-grid { display: grid; gap: 2px; background-color: var(--panel-bg); padding: 5px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; margin: 0 auto; touch-action: none; }
+        #grid, .dynamic-grid { 
+            display: grid; 
+            gap: 2px; 
+            background-color: var(--panel-bg); 
+            padding: 5px; 
+            border-radius: 10px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            position: relative; 
+            margin: 0 auto; 
+            touch-action: none;
+            max-width: 98vw; /* Empêche le débordement sur mobile */
+        }
         .cell, .ttt-cell, .c4-cell { display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
         
         /* Mine */
+        /* RESPONSIVE TAILLE CELLULE */
         .cell { width: 30px; height: 30px; background-color: #0f3460; border-radius: 3px; font-size: 18px; }
+        @media (max-width: 400px) { .cell { width: 24px; height: 24px; font-size: 14px; } }
+
         .cell:hover { background-color: #1f4287; } .cell.revealed { background-color: #2c2c54; cursor: default; } .cell.bomb { background-color: #e94560; } .cell.flag { color: #f1c40f; }
         .c1 { color: #3498db; } .c2 { color: #2ecc71; } .c3 { color: #e74c3c; }
         
         /* TTT */
         .dynamic-grid { gap: 5px; background-color: #30475e; }
         .ttt-cell { background-color: var(--panel-bg); font-size: 2em; color: white; width: 60px; height: 60px; }
+        @media (max-width: 400px) { .ttt-cell { width: 50px; height: 50px; font-size: 1.5em; } }
         .ttt-cell:hover { background-color: #2c3e50; } .ttt-cell.x { color: #e74c3c; } .ttt-cell.o { color: #3498db; }
         
         /* Connect 4 */
-        #c4Grid { background-color: #0984e3; gap: 5px; }
-        .c4-cell { background-color: var(--bg-color); border-radius: 50%; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); width: 40px; height: 40px;}
+        #c4Grid { background-color: #0984e3; gap: 4px; padding: 5px; }
+        .c4-cell { background-color: var(--bg-color); border-radius: 50%; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); width: 45px; height: 45px;}
+        @media (max-width: 400px) { .c4-cell { width: 34px; height: 34px; } }
         .c4-cell.red { background-color: #e74c3c; } .c4-cell.yellow { background-color: #f1c40f; }
         
         .disappear { transform: scale(0); opacity: 0; }
@@ -230,6 +243,7 @@
         .mm-row { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 5px; justify-content: center; }
         .mm-holes { display: flex; gap: 5px; }
         .mm-hole { width: 25px; height: 25px; border-radius: 50%; background-color: #1a1a2e; border: 2px solid #555; cursor: pointer; transition: all 0.2s; }
+        @media (max-width: 360px) { .mm-hole { width: 20px; height: 20px; } }
         .mm-hole.active { box-shadow: 0 0 10px white; border-color: white; }
         
         .mm-feedback { 
@@ -758,7 +772,7 @@
         function loadFlappySystem() { hub.style.display='none'; flappyRoot.style.display='flex'; document.getElementById('flappyMenu').style.display='block'; document.getElementById('flappyGameContainer').style.display='none'; }
 
         // ============================
-        // === FLAPPY BIRD LOGIC (CORRECTED) ===
+        // === FLAPPY BIRD LOGIC ===
         // ============================
         const fCanvas = document.getElementById('flappyCanvas');
         const fCtx = fCanvas.getContext('2d');
@@ -1172,7 +1186,7 @@
         }, {passive: false});
 
         // ============================
-        // === TRON LOGIC (V4 - NO VISUAL GLITCH) ===
+        // === TRON LOGIC ===
         // ============================
         const trCanvas = document.getElementById('tronCanvas');
         const trCtx = trCanvas.getContext('2d');
@@ -1672,13 +1686,21 @@
                 if(k==40&&sVelY!=-1){sVelX=0;sVelY=1;}
             }
 
-            // TRON
+            // TRON (FIX MOBILE)
             if(currentGameMode === 'tron') {
                 // P1 (ZQSD - WASD)
                 if(k==81 || k==65) { if(tronP1.dx!==1) tP1NextDir = {dx:-1, dy:0}; } // Q/A
                 if(k==90 || k==87) { if(tronP1.dy!==1) tP1NextDir = {dx:0, dy:-1}; } // Z/W
                 if(k==68) { if(tronP1.dx!==-1) tP1NextDir = {dx:1, dy:0}; }  // D
                 if(k==83) { if(tronP1.dy!==-1) tP1NextDir = {dx:0, dy:1}; }  // S
+
+                // CORRECTION : Si on joue contre l'IA, les flèches contrôlent P1
+                if (tronIsCPU) {
+                    if(k==37) { if(tronP1.dx!==1) tP1NextDir = {dx:-1, dy:0}; } 
+                    if(k==38) { if(tronP1.dy!==1) tP1NextDir = {dx:0, dy:-1}; } 
+                    if(k==39) { if(tronP1.dx!==-1) tP1NextDir = {dx:1, dy:0}; } 
+                    if(k==40) { if(tronP1.dy!==-1) tP1NextDir = {dx:0, dy:1}; }
+                }
 
                 // P2 (Flèches) - seulement si pas CPU
                 if(!tronIsCPU) {
@@ -1717,7 +1739,11 @@
         // === MINESWEEPER LOGIC ===
         const mGrid = document.getElementById('grid'), mFlagsEl = document.getElementById('flagsLeft'), mTimerEl = document.getElementById('mineTimer');
         let mWidth = 10, mBombs = 10, mSquares = [], mGameOver = false, mFlags = 0, mSec = 0, mTimerId;
-        function startMineGame(w, b) { mWidth = w; mBombs = b; document.getElementById('mineMenu').style.display = 'none'; document.getElementById('mineGameContainer').style.display = 'flex'; currentGameMode = 'mine'; mGrid.style.gridTemplateColumns = `repeat(${mWidth}, 30px)`; document.getElementById('mineHeader').style.width = `${(mWidth * 32) + 20}px`; initMineBoard(); }
+        function startMineGame(w, b) { mWidth = w; mBombs = b; document.getElementById('mineMenu').style.display = 'none'; document.getElementById('mineGameContainer').style.display = 'flex'; currentGameMode = 'mine'; 
+        // CORRECTION MOBILE
+        let cellSize = (window.innerWidth < 400) ? 24 : 30; 
+        mGrid.style.gridTemplateColumns = `repeat(${mWidth}, ${cellSize}px)`; 
+        document.getElementById('mineHeader').style.width = `${(mWidth * (cellSize + 2)) + 20}px`; initMineBoard(); }
         function stopMine() { clearInterval(mTimerId); }
         function initMineBoard() { stopMine(); mGrid.innerHTML = ''; mSquares = []; mGameOver = false; mFlags = 0; mSec = 0; mTimerEl.innerHTML = '0'; mFlagsEl.innerHTML = mBombs; mTimerId = setInterval(() => { if(!mGameOver) { mSec++; mTimerEl.innerHTML = mSec; } }, 1000); createMineGrid(); }
         function createMineGrid() { const bombsArray = Array(mBombs).fill('bomb'); const emptyArray = Array(mWidth * mWidth - mBombs).fill('valid'); const gameArray = emptyArray.concat(bombsArray); for (let i = gameArray.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [gameArray[i], gameArray[j]] = [gameArray[j], gameArray[i]]; } for(let i = 0; i < mWidth * mWidth; i++) { const square = document.createElement('div'); square.setAttribute('id', i); square.classList.add('cell'); square.dataset.type = gameArray[i]; square.addEventListener('click', () => clickMine(square)); square.oncontextmenu = (e) => { e.preventDefault(); addMineFlag(square); }; mGrid.appendChild(square); mSquares.push(square); } for (let i = 0; i < mSquares.length; i++) { let total = 0; const isLeft = (i % mWidth === 0); const isRight = (i % mWidth === mWidth -1); if (mSquares[i].dataset.type === 'valid') { if (i > 0 && !isLeft && mSquares[i-1].dataset.type === 'bomb') total++; if (i > mWidth-1 && !isRight && mSquares[i+1-mWidth].dataset.type === 'bomb') total++; if (i > mWidth && mSquares[i-mWidth].dataset.type === 'bomb') total++; if (i > mWidth+1 && !isLeft && mSquares[i-1-mWidth].dataset.type === 'bomb') total++; if (i < mWidth*mWidth-2 && !isRight && mSquares[i+1].dataset.type === 'bomb') total++; if (i < mWidth*mWidth-mWidth && !isLeft && mSquares[i-1+mWidth].dataset.type === 'bomb') total++; if (i < mWidth*mWidth-mWidth-2 && !isRight && mSquares[i+1+mWidth].dataset.type === 'bomb') total++; if (i < mWidth*mWidth-mWidth-1 && mSquares[i+mWidth].dataset.type === 'bomb') total++; mSquares[i].setAttribute('data', total); } } }
@@ -1759,31 +1785,61 @@
         function startTTT(mode) { 
             tttMode = mode; if(mode !== 'pvp') { tttSize=3; tttWinLen=3; }
             document.getElementById('tttMenu').style.display = 'none'; document.getElementById('tttGameContainer').style.display = 'flex'; currentGameMode = 'tictactoe'; tttScoreX = 0; tttScoreO = 0; updateTTTScoreBoard(); 
-            tttGrid.style.gridTemplateColumns = `repeat(${tttSize}, 60px)`; tttGrid.style.gridTemplateRows = `repeat(${tttSize}, 60px)`; resetTTT(false); 
+            // CORRECTION MOBILE
+            let cellSize = (window.innerWidth < 400) ? 50 : 60;
+            tttGrid.style.gridTemplateColumns = `repeat(${tttSize}, ${cellSize}px)`; tttGrid.style.gridTemplateRows = `repeat(${tttSize}, ${cellSize}px)`; resetTTT(false); 
         }
         function backToTTTMenu() { document.getElementById('tttGameContainer').style.display = 'none'; document.getElementById('tttMenu').style.display = 'block'; }
         function triggerResetTTT() { if(!tttGameActive && checkBoardEmpty(tttBoard)) return; document.querySelectorAll('.ttt-cell').forEach(c => c.classList.add('disappear')); const line = tttGrid.querySelector('.winning-line'); if(line) line.remove(); setTimeout(() => { resetTTT(true); }, 300); }
         function resetTTT(animate) { tttBoard = Array(tttSize).fill(null).map(() => Array(tttSize).fill('')); tttCurrentPlayer = tttStart; tttGameActive = true; tttStatus.innerText = "Tour de : " + tttCurrentPlayer; renderTTT(); if (tttMode.startsWith('cpu') && tttCurrentPlayer === 'O') setTimeout(cpuMoveTTT, 600); }
         function updateTTTScoreBoard() { scoreXEl.innerText = tttScoreX; scoreOEl.innerText = tttScoreO; }
         function renderTTT() { tttGrid.innerHTML = ''; for(let r=0; r<tttSize; r++){ for(let c=0; c<tttSize; c++){ const cellDiv = document.createElement('div'); cellDiv.classList.add('ttt-cell'); if(tttBoard[r][c] === 'X') cellDiv.classList.add('x'); if(tttBoard[r][c] === 'O') cellDiv.classList.add('o'); cellDiv.innerText = tttBoard[r][c]; cellDiv.addEventListener('click', () => handleTTTClick(r, c)); tttGrid.appendChild(cellDiv); } } }
-        function handleTTTClick(r, c) { if (tttBoard[r][c] !== '' || !tttGameActive) return; tttBoard[r][c] = tttCurrentPlayer; renderTTT(); const win = checkGenericWin(tttBoard, tttSize, tttSize, tttWinLen, tttCurrentPlayer); if(win) { tttStatus.innerText = `Le joueur ${tttCurrentPlayer} a gagné !`; tttGameActive = false; drawGenericLine(win, tttGrid, 60, 5); if(tttCurrentPlayer === 'X') tttScoreX++; else tttScoreO++; updateTTTScoreBoard(); return; } if (checkBoardFull(tttBoard)) { tttStatus.innerText = "Match Nul !"; tttGameActive = false; return; } tttCurrentPlayer = tttCurrentPlayer === 'X' ? 'O' : 'X'; tttStatus.innerText = "Tour de : " + tttCurrentPlayer; if (tttGameActive && tttMode.startsWith('cpu') && tttCurrentPlayer === 'O') { setTimeout(cpuMoveTTT, 500); } }
+        function handleTTTClick(r, c) { if (tttBoard[r][c] !== '' || !tttGameActive) return; tttBoard[r][c] = tttCurrentPlayer; renderTTT(); const win = checkGenericWin(tttBoard, tttSize, tttSize, tttWinLen, tttCurrentPlayer); 
+        if(win) { 
+            tttStatus.innerText = `Le joueur ${tttCurrentPlayer} a gagné !`; tttGameActive = false; 
+            // CORRECTION LIGNE
+            let cellSize = (window.innerWidth < 400) ? 50 : 60;
+            drawGenericLine(win, tttGrid, cellSize, 5); if(tttCurrentPlayer === 'X') tttScoreX++; else tttScoreO++; updateTTTScoreBoard(); return; 
+        } if (checkBoardFull(tttBoard)) { tttStatus.innerText = "Match Nul !"; tttGameActive = false; return; } tttCurrentPlayer = tttCurrentPlayer === 'X' ? 'O' : 'X'; tttStatus.innerText = "Tour de : " + tttCurrentPlayer; if (tttGameActive && tttMode.startsWith('cpu') && tttCurrentPlayer === 'O') { setTimeout(cpuMoveTTT, 500); } }
         function checkBoardEmpty(b) { for(let r=0;r<b.length;r++)for(let c=0;c<b[0].length;c++)if(b[r][c]!=='')return false; return true; }
         function checkBoardFull(b) { for(let r=0;r<b.length;r++)for(let c=0;c<b[0].length;c++)if(b[r][c]==='')return false; return true; }
-        function cpuMoveTTT() { if(!tttGameActive) return; let move = findBestMoveGeneric(tttBoard, tttSize, tttSize, tttWinLen, 'O', 'X'); tttBoard[move.r][move.c] = 'O'; renderTTT(); const win = checkGenericWin(tttBoard, tttSize, tttSize, tttWinLen, 'O'); if(win) { tttStatus.innerText = "O a gagné !"; tttGameActive = false; tttScoreO++; updateTTTScoreBoard(); drawGenericLine(win, tttGrid, 60, 5); return; } if(checkBoardFull(tttBoard)) { tttStatus.innerText = "Match Nul"; tttGameActive = false; return; } tttCurrentPlayer = 'X'; tttStatus.innerText = "Tour de : X"; }
+        function cpuMoveTTT() { if(!tttGameActive) return; let move = findBestMoveGeneric(tttBoard, tttSize, tttSize, tttWinLen, 'O', 'X'); tttBoard[move.r][move.c] = 'O'; renderTTT(); const win = checkGenericWin(tttBoard, tttSize, tttSize, tttWinLen, 'O'); 
+        if(win) { 
+            tttStatus.innerText = "O a gagné !"; tttGameActive = false; tttScoreO++; updateTTTScoreBoard(); 
+            // CORRECTION LIGNE
+            let cellSize = (window.innerWidth < 400) ? 50 : 60;
+            drawGenericLine(win, tttGrid, cellSize, 5); return; 
+        } if(checkBoardFull(tttBoard)) { tttStatus.innerText = "Match Nul"; tttGameActive = false; return; } tttCurrentPlayer = 'X'; tttStatus.innerText = "Tour de : X"; }
         function findBestMoveGeneric(board, rows, cols, winLen, me, opp) { for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) { if(board[r][c] === '') { board[r][c] = me; if(checkGenericWin(board, rows, cols, winLen, me)) { board[r][c] = ''; return {r,c}; } board[r][c] = ''; } } for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) { if(board[r][c] === '') { board[r][c] = opp; if(checkGenericWin(board, rows, cols, winLen, opp)) { board[r][c] = ''; return {r,c}; } board[r][c] = ''; } } let available = []; for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) if(board[r][c]==='') available.push({r,c}); return available[Math.floor(Math.random()*available.length)]; }
+        
         // === CONNECT 4 LOGIC ===
         const c4Grid = document.getElementById('c4Grid'), c4Status = document.getElementById('c4Status'), c4ScoreRedEl = document.getElementById('c4ScoreRed'), c4ScoreYellowEl = document.getElementById('c4ScoreYellow');
         let c4Board = [], c4Player = 'R', c4Active = true, c4Mode = 'pvp', c4ScoreR = 0, c4ScoreY = 0;
-        function startC4(mode) { c4Mode = mode; if(mode !== 'pvp') { c4Rows=6; c4Cols=7; c4WinLen=4; } document.getElementById('c4Menu').style.display = 'none'; document.getElementById('c4GameContainer').style.display = 'flex'; currentGameMode = 'connect4'; c4ScoreR = 0; c4ScoreY = 0; updateC4Score(); c4Grid.style.gridTemplateColumns = `repeat(${c4Cols}, 50px)`; c4Grid.style.gridTemplateRows = `repeat(${c4Rows}, 50px)`; resetC4(); }
+        function startC4(mode) { c4Mode = mode; if(mode !== 'pvp') { c4Rows=6; c4Cols=7; c4WinLen=4; } document.getElementById('c4Menu').style.display = 'none'; document.getElementById('c4GameContainer').style.display = 'flex'; currentGameMode = 'connect4'; c4ScoreR = 0; c4ScoreY = 0; updateC4Score(); 
+        // CORRECTION MOBILE
+        let cellSize = (window.innerWidth < 400) ? 34 : 45;
+        c4Grid.style.gridTemplateColumns = `repeat(${c4Cols}, ${cellSize}px)`; c4Grid.style.gridTemplateRows = `repeat(${c4Rows}, ${cellSize}px)`; resetC4(); }
         function backToC4Menu() { document.getElementById('c4GameContainer').style.display = 'none'; document.getElementById('c4Menu').style.display = 'block'; }
         function triggerResetC4() { if(!c4Active && checkBoardFullC4(c4Board)) return; document.querySelectorAll('.c4-cell').forEach(c => c.classList.add('disappear')); const line = c4Grid.querySelector('.winning-line'); if(line) line.remove(); setTimeout(resetC4, 300); }
         function resetC4() { c4Board = Array(c4Rows).fill(null).map(() => Array(c4Cols).fill(null)); c4Player = c4Start; c4Active = true; c4Status.innerText = "Tour de : " + (c4Player === 'R' ? "ROUGE" : "JAUNE"); c4Status.style.color = (c4Player === 'R' ? "#e74c3c" : "#f1c40f"); renderC4(); if (c4Mode.startsWith('cpu') && c4Player === 'Y') setTimeout(c4Cpu, 600); }
         function updateC4Score() { c4ScoreRedEl.innerText = c4ScoreR; c4ScoreYellowEl.innerText = c4ScoreY; }
         function renderC4() { c4Grid.innerHTML = ''; for (let r = 0; r < c4Rows; r++) { for (let c = 0; c < c4Cols; c++) { const cell = document.createElement('div'); cell.classList.add('c4-cell'); cell.dataset.col = c; if (c4Board[r][c] === 'R') cell.classList.add('red'); if (c4Board[r][c] === 'Y') cell.classList.add('yellow'); cell.addEventListener('click', () => handleC4Click(c)); c4Grid.appendChild(cell); } } }
-        function handleC4Click(col) { if (!c4Active) return; const r = getLowRow(c4Board, col); if (r === -1) return; c4Board[r][col] = c4Player; renderC4(); const win = checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, c4Player); if(win) { c4Status.innerText = (c4Player === 'R' ? "ROUGE" : "JAUNE") + " GAGNE !"; c4Active = false; if(c4Player === 'R') c4ScoreR++; else c4ScoreY++; updateC4Score(); drawGenericLine(win, c4Grid, 50, 8); return; } if (checkBoardFullC4(c4Board)) { c4Status.innerText = "MATCH NUL"; c4Status.style.color = "#fff"; c4Active = false; return; } c4Player = c4Player === 'R' ? 'Y' : 'R'; c4Status.innerText = "Tour de : " + (c4Player === 'R' ? "ROUGE" : "JAUNE"); c4Status.style.color = c4Player === 'R' ? "#e74c3c" : "#f1c40f"; if (c4Active && c4Mode.startsWith('cpu') && c4Player === 'Y') setTimeout(c4Cpu, 500); }
+        function handleC4Click(col) { if (!c4Active) return; const r = getLowRow(c4Board, col); if (r === -1) return; c4Board[r][col] = c4Player; renderC4(); const win = checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, c4Player); 
+        if(win) { 
+            c4Status.innerText = (c4Player === 'R' ? "ROUGE" : "JAUNE") + " GAGNE !"; c4Active = false; if(c4Player === 'R') c4ScoreR++; else c4ScoreY++; updateC4Score(); 
+            // CORRECTION LIGNE
+            let cellSize = (window.innerWidth < 400) ? 34 : 45;
+            drawGenericLine(win, c4Grid, cellSize, 4); return; 
+        } if (checkBoardFullC4(c4Board)) { c4Status.innerText = "MATCH NUL"; c4Status.style.color = "#fff"; c4Active = false; return; } c4Player = c4Player === 'R' ? 'Y' : 'R'; c4Status.innerText = "Tour de : " + (c4Player === 'R' ? "ROUGE" : "JAUNE"); c4Status.style.color = c4Player === 'R' ? "#e74c3c" : "#f1c40f"; if (c4Active && c4Mode.startsWith('cpu') && c4Player === 'Y') setTimeout(c4Cpu, 500); }
         function getLowRow(b, c) { for (let r = c4Rows - 1; r >= 0; r--) if (b[r][c] === null) return r; return -1; }
         function checkBoardFullC4(b) { for (let c = 0; c < c4Cols; c++) if (b[0][c] === null) return false; return true; }
-        function c4Cpu() { if (!c4Active) return; let col = -1; for(let c=0; c<c4Cols; c++) { let r = getLowRow(c4Board, c); if(r!==-1) { c4Board[r][c] = 'Y'; if(checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, 'Y')) { c4Board[r][c] = null; col=c; break; } c4Board[r][c] = null; } } if(col === -1) { for(let c=0; c<c4Cols; c++) { let r = getLowRow(c4Board, c); if(r!==-1) { c4Board[r][c] = 'R'; if(checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, 'R')) { c4Board[r][c] = null; col=c; break; } c4Board[r][c] = null; } } } if(col === -1) { let valid = []; for(let c=0;c<c4Cols;c++) if(c4Board[0][c]===null) valid.push(c); col = valid[Math.floor(Math.random()*valid.length)]; } const row = getLowRow(c4Board, col); c4Board[row][col] = 'Y'; renderC4(); const win = checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, 'Y'); if (win) { c4Status.innerText = "JAUNE GAGNE !"; c4Active = false; c4ScoreY++; updateC4Score(); drawGenericLine(win, c4Grid, 50, 8); return; } if (checkBoardFullC4(c4Board)) { c4Status.innerText = "MATCH NUL"; c4Active = false; return; } c4Player = 'R'; c4Status.innerText = "Tour de : ROUGE"; c4Status.style.color = "#e74c3c"; }
+        function c4Cpu() { if (!c4Active) return; let col = -1; for(let c=0; c<c4Cols; c++) { let r = getLowRow(c4Board, c); if(r!==-1) { c4Board[r][c] = 'Y'; if(checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, 'Y')) { c4Board[r][c] = null; col=c; break; } c4Board[r][c] = null; } } if(col === -1) { for(let c=0; c<c4Cols; c++) { let r = getLowRow(c4Board, c); if(r!==-1) { c4Board[r][c] = 'R'; if(checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, 'R')) { c4Board[r][c] = null; col=c; break; } c4Board[r][c] = null; } } } if(col === -1) { let valid = []; for(let c=0;c<c4Cols;c++) if(c4Board[0][c]===null) valid.push(c); col = valid[Math.floor(Math.random()*valid.length)]; } const row = getLowRow(c4Board, col); c4Board[row][col] = 'Y'; renderC4(); const win = checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, 'Y'); 
+        if (win) { 
+            c4Status.innerText = "JAUNE GAGNE !"; c4Active = false; c4ScoreY++; updateC4Score(); 
+            // CORRECTION LIGNE
+            let cellSize = (window.innerWidth < 400) ? 34 : 45;
+            drawGenericLine(win, c4Grid, cellSize, 4); return; 
+        } if (checkBoardFullC4(c4Board)) { c4Status.innerText = "MATCH NUL"; c4Active = false; return; } c4Player = 'R'; c4Status.innerText = "Tour de : ROUGE"; c4Status.style.color = "#e74c3c"; }
     </script>
 </body>
 </html>
