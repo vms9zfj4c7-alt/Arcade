@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate - V10 Fluid</title>
+    <title>Arcade Ultimate - V11 Scroll Fix</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -26,11 +26,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: flex-start; /* Important pour le scroll */
             min-height: 100vh;
             width: 100%;
             user-select: none;
             overflow-x: hidden;
+            overflow-y: auto; /* Scroll autorisé */
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
         }
@@ -50,7 +51,7 @@
             width: 90%; 
             max-width: 500px; 
             animation: fadeIn 0.5s ease-out;
-            margin: 40px auto;
+            margin: 80px auto 40px auto; /* Marge haut augmentée */
             box-sizing: border-box;
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -114,20 +115,23 @@
         .btn-medium { background-color: #f39c12; }
         .btn-hard { background-color: #e74c3c; }
 
-        /* CONTAINERS JEUX (FIX CENTRAGE) */
+        /* CONTAINERS JEUX - CORRECTION DU SCROLL */
+        /* On ne centre plus verticalement, on laisse le flux naturel avec du padding */
         #snakeRoot, #minesweeperRoot, #tictactoeRoot, #connect4Root, #tetrisRoot, #pongRoot, #tronRoot, #mmRoot, #flappyRoot { 
             display: none; 
             flex-direction: column; 
             align-items: center;
-            justify-content: center; /* CENTRAGE VERTICAL FIX */
+            justify-content: flex-start; /* IMPORTANT: Permet aux éléments de s'empiler */
             width: 100%; 
             min-height: 100vh;
             position: absolute;
             top: 0; left: 0;
             background-color: var(--bg-color);
-            padding: 20px 0 100px 0;
+            padding-top: 80px; /* Espace pour le bouton retour */
+            padding-bottom: 150px; /* Espace pour voir les boutons en bas */
             box-sizing: border-box;
             z-index: 10;
+            overflow-y: auto; /* Force le scroll si ça dépasse */
         }
         
         /* GENERAL CANVAS/GRID - RESPONSIVE */
@@ -139,7 +143,6 @@
             border-radius: 4px; 
             margin: 0 auto; 
             max-width: 95vw; 
-            max-height: 70vh;
             height: auto;
             width: auto;
             touch-action: none; 
@@ -164,9 +167,8 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             margin: 0 auto;
             touch-action: none;
-            width: 95vw; /* FLUIDE */
-            max-width: 400px; /* LIMITE */
-            /* grid-template-columns défini via JS style */
+            width: 95vw;
+            max-width: 400px;
         }
         
         .dynamic-grid { /* TTT et C4 */
@@ -179,8 +181,8 @@
             position: relative;
             margin: 0 auto;
             touch-action: none;
-            width: 90vw; /* FLUIDE */
-            max-width: 400px;
+            width: 90vw; /* Utilise 90% de la largeur écran */
+            max-width: 400px; /* Mais ne dépasse pas 400px */
         }
 
         /* CELLULES FLUIDES AVEC ASPECT RATIO */
@@ -191,9 +193,9 @@
             font-weight: bold; 
             cursor: pointer; 
             transition: transform 0.2s;
-            width: auto; /* Laisse le grid gérer */
+            width: auto; 
             height: auto;
-            aspect-ratio: 1 / 1; /* GARANTIT LE CARRÉ PARFAIT */
+            aspect-ratio: 1 / 1; /* C'est ça qui garde les cases carrées */
         }
         
         /* Mine */
@@ -215,14 +217,29 @@
         .winning-line { position: absolute; background-color: white; border-radius: 5px; transform-origin: left center; z-index: 20; display: none; box-shadow: 0 0 10px white; pointer-events: none; }
 
         /* BOUTON ACTION FIXE (RELANCER) */
+        /* Ce style assure que les boutons en bas sont visibles et jolis */
+        .game-controls-bottom {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            z-index: 50; /* Au dessus de tout */
+            position: relative;
+        }
+
         .btn-action-fix {
             width: auto !important;
             min-width: 120px;
             max-width: 200px;
-            padding: 10px 20px;
+            padding: 12px 20px;
             font-size: 16px;
-            height: 50px;
+            height: auto;
             flex-shrink: 0;
+            background-color: #27ae60;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
         /* TETRIS UI */
@@ -597,7 +614,8 @@
             </div>
             <div id="tttStatus" style="font-size: 24px; margin-bottom: 15px; color: #f1c40f; font-weight: bold;">Tour de : X</div>
             <div id="tttGrid" class="dynamic-grid ttt-grid-style"></div>
-            <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+            
+            <div class="game-controls-bottom">
                 <button class="btn-action-fix" style="background-color: #27ae60;" onclick="triggerResetTTT()">🔄 Relancer</button>
                 <button class="btn-action-fix" style="background-color: #95a5a6;" onclick="backToTTTMenu()">Menu</button>
             </div>
@@ -622,7 +640,8 @@
             </div>
             <div id="c4Status" style="font-size: 24px; margin-bottom: 15px; color: #f1c40f; font-weight: bold;">Tour de : ROUGE</div>
             <div id="c4Grid" class="dynamic-grid c4-grid-style"></div>
-            <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+            
+            <div class="game-controls-bottom">
                 <button class="btn-action-fix" style="background-color: #27ae60;" onclick="triggerResetC4()">🔄 Relancer</button>
                 <button class="btn-action-fix" style="background-color: #95a5a6;" onclick="backToC4Menu()">Menu</button>
             </div>
