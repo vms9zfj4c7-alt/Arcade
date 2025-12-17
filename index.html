@@ -1,14 +1,3 @@
-C'est une excellente question et c'est l'étape suivante logique pour rendre ton jeu addictif !
-Cependant, il y a une contrainte technique majeure à comprendre :
- * Le site actuel (HTML seul) : Ton fichier est stocké sur ton téléphone/ordinateur. Il n'a pas de "mémoire" partagée. Si tu joues, ton ami sur son propre téléphone ne peut pas voir ton score, car il n'y a pas de Serveur ni de Base de données centrale pour stocker les infos.
- * La solution "Globale" (Vraie compétition) : Pour que tout le monde voie les scores des autres, il faut connecter ton jeu à un service Cloud (comme Firebase de Google ou Supabase). Cela demande de créer un compte, d'obtenir des clés API secrètes et de les insérer dans le code. C'est plus complexe.
-MAIS, pour l'instant, je peux te créer la Version 15 (Classement Local & Profil).
-Voici ce que cette version va faire :
- * Système de Pseudo : Au démarrage, le jeu te demande ton nom.
- * Classement Local : Il enregistre tes meilleurs scores (et ceux de tes amis s'ils jouent sur le même téléphone) dans la mémoire du navigateur.
- * Tableau des Scores : Un nouveau bouton dans le menu pour voir le Top 10 de chaque jeu.
-Si tu héberges ce fichier plus tard, le classement restera propre à chaque visiteur (chacun verra ses propres records).
-Voici le code complet de la V15 :
 <!DOCTYPE html>
 <html lang="fr">
 <head>
