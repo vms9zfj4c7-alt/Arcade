@@ -1,9 +1,20 @@
+C'est une excellente question et c'est l'étape suivante logique pour rendre ton jeu addictif !
+Cependant, il y a une contrainte technique majeure à comprendre :
+ * Le site actuel (HTML seul) : Ton fichier est stocké sur ton téléphone/ordinateur. Il n'a pas de "mémoire" partagée. Si tu joues, ton ami sur son propre téléphone ne peut pas voir ton score, car il n'y a pas de Serveur ni de Base de données centrale pour stocker les infos.
+ * La solution "Globale" (Vraie compétition) : Pour que tout le monde voie les scores des autres, il faut connecter ton jeu à un service Cloud (comme Firebase de Google ou Supabase). Cela demande de créer un compte, d'obtenir des clés API secrètes et de les insérer dans le code. C'est plus complexe.
+MAIS, pour l'instant, je peux te créer la Version 15 (Classement Local & Profil).
+Voici ce que cette version va faire :
+ * Système de Pseudo : Au démarrage, le jeu te demande ton nom.
+ * Classement Local : Il enregistre tes meilleurs scores (et ceux de tes amis s'ils jouent sur le même téléphone) dans la mémoire du navigateur.
+ * Tableau des Scores : Un nouveau bouton dans le menu pour voir le Top 10 de chaque jeu.
+Si tu héberges ce fichier plus tard, le classement restera propre à chaque visiteur (chacun verra ses propres records).
+Voici le code complet de la V15 :
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate - V14 Flappy Graphics</title>
+    <title>Arcade Ultimate - V15 Leaderboard</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -80,13 +91,48 @@
 
         /* HUB */
         #mainHub { position: relative; border: 2px solid var(--accent-gold); margin-top: 60px; }
+        
+        /* HEADER UTILISATEUR */
+        #userHeader {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2c3e50;
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--accent-gold);
+            font-size: 14px;
+            white-space: nowrap;
+            color: var(--accent-gold);
+        }
+
         #vaultBtn { position: absolute; top: 15px; right: 15px; background: none; font-size: 24px; padding: 0; cursor: pointer; opacity: 0.6; transition: opacity 0.3s; box-shadow: none; }
         #vaultBtn:hover { opacity: 1; transform: scale(1.2); }
+        
+        #leaderboardBtn { position: absolute; top: 15px; left: 15px; background: none; font-size: 24px; padding: 0; cursor: pointer; opacity: 0.6; transition: opacity 0.3s; box-shadow: none; }
+        #leaderboardBtn:hover { opacity: 1; transform: scale(1.2); }
+
+        /* MODAL GÉNÉRAL (LOGIN / LEADERBOARD / VAULT) */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background-color: var(--vault-color); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; border: 2px solid var(--accent-gold); box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); text-align: center; max-height: 80vh; overflow-y: auto; }
+
+        /* LOGIN */
+        #loginInput { font-size: 20px; text-align: center; padding: 10px; margin: 15px 0; border-radius: 5px; width: 80%; border: none; }
+
+        /* LEADERBOARD TABLE */
+        .lb-tabs { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+        .lb-tab { padding: 5px 10px; font-size: 12px; background: #16213e; border: 1px solid #7f8c8d; cursor: pointer; border-radius: 5px; }
+        .lb-tab.active { background: var(--accent-gold); color: black; font-weight: bold; border-color: white; }
+        
+        table.lb-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table.lb-table th { background: #16213e; padding: 8px; color: var(--accent-gold); }
+        table.lb-table td { padding: 8px; border-bottom: 1px solid #7f8c8d; }
+        table.lb-table tr:nth-child(1) td { color: #f1c40f; font-weight: bold; font-size: 1.2em; } /* 1er Or */
+        table.lb-table tr:nth-child(2) td { color: #bdc3c7; font-weight: bold; } /* 2eme Argent */
+        table.lb-table tr:nth-child(3) td { color: #e67e22; font-weight: bold; } /* 3eme Bronze */
 
         /* COFFRE FORT */
-        #vaultOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        #vaultContent { background-color: var(--vault-color); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; border: 2px solid var(--accent-gold); box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); text-align: center; max-height: 80vh; overflow-y: auto; }
-        
         #vaultAuth input { font-size: 24px; text-align: center; letter-spacing: 5px; width: 80%; padding: 10px; margin: 15px 0; border-radius: 5px; border: none; background: #ecf0f1; color: #2c3e50;}
         #vaultError { color: #e74c3c; font-weight: bold; display: none; margin-bottom: 10px; animation: shake 0.3s; }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
@@ -267,8 +313,8 @@
         .p1-tron { color: var(--tron-cyan); } 
         .p2-tron { color: var(--tron-orange); } 
 
-        /* FLAPPY UI - CANVAS BORDER REMOVED FOR BETTER SKY */
-        #flappyCanvas { /* border: 4px solid var(--flappy-green); */ background-color: #000; width: 90%; max-width: 400px; height: auto; aspect-ratio: 2/3; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        /* FLAPPY UI */
+        #flappyCanvas { background-color: #000; width: 90%; max-width: 400px; height: auto; aspect-ratio: 2/3; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         #flappyScoreBoard { font-family: 'Courier New', monospace; font-size: 30px; font-weight: bold; margin-bottom: 10px; color: var(--flappy-yellow); }
         #flappyOverlay {
             display: none;
@@ -383,7 +429,30 @@
     </div>
     <div id="actionBtn" ontouchstart="simulateAction(); return false;">ACT</div>
 
-    <div id="vaultOverlay">
+    <div id="loginOverlay" class="modal-overlay" style="display: flex;">
+        <div class="modal-content">
+            <h2>👤 IDENTIFICATION</h2>
+            <p>Choisis ton Pseudo Arcade :</p>
+            <input type="text" id="loginInput" placeholder="Ton pseudo..." maxlength="12">
+            <button style="width:100%; background:#3498db;" onclick="submitLogin()">START GAME</button>
+        </div>
+    </div>
+
+    <div id="leaderboardOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <h2>🏆 CLASSEMENT LOCAL</h2>
+            <div class="lb-tabs" id="lbTabs">
+                </div>
+            <table class="lb-table">
+                <thead><tr><th>Rang</th><th>Joueur</th><th>Score</th></tr></thead>
+                <tbody id="lbBody">
+                    </tbody>
+            </table>
+            <button style="width:100%; background:#95a5a6; margin-top:20px;" onclick="closeLeaderboard()">Fermer</button>
+        </div>
+    </div>
+
+    <div id="vaultOverlay" class="modal-overlay">
         <div id="vaultContent">
             <div id="vaultAuth">
                 <h2>🔒 SÉCURITÉ</h2>
@@ -448,7 +517,10 @@
     </div>
 
     <div id="mainHub" class="game-menu-card">
+        <div id="userHeader">Invité</div>
         <div id="vaultBtn" onclick="openVault()">🔒</div>
+        <div id="leaderboardBtn" onclick="openLeaderboard()">🏆</div>
+        
         <h1>🎮 ARCADE ZONE</h1>
         <p>Sélectionnez votre jeu :</p>
         <button class="btn-hub btn-flappy-hub" onclick="loadFlappySystem()">🐦 FLAPPY BIRD</button>
@@ -651,6 +723,120 @@
     </div>
 
     <script>
+        // === GESTION UTILISATEUR & SCORE (LOCAL STORAGE) ===
+        let currentUser = "Joueur";
+        
+        // Initialisation
+        window.onload = function() {
+            // Vérifie si un nom existe déjà
+            const storedName = localStorage.getItem('arcadeUsername');
+            if(storedName) {
+                currentUser = storedName;
+                document.getElementById('userHeader').innerText = "👤 " + currentUser;
+                document.getElementById('loginOverlay').style.display = 'none';
+            } else {
+                document.getElementById('loginOverlay').style.display = 'flex';
+                document.getElementById('loginInput').focus();
+            }
+        };
+
+        function submitLogin() {
+            const val = document.getElementById('loginInput').value.trim();
+            if(val.length > 0) {
+                currentUser = val;
+                localStorage.setItem('arcadeUsername', currentUser);
+                document.getElementById('userHeader').innerText = "👤 " + currentUser;
+                document.getElementById('loginOverlay').style.display = 'none';
+            } else {
+                alert("Entre un pseudo !");
+            }
+        }
+
+        // --- SYSTÈME DE CLASSEMENT ---
+        // Structure de données : { 'flappy': [{name:'Toto', score:10}, ...], 'snake': ... }
+        function saveHighScore(gameName, score) {
+            let allScores = JSON.parse(localStorage.getItem('arcadeLeaderboard')) || {};
+            if(!allScores[gameName]) allScores[gameName] = [];
+            
+            // Ajoute le nouveau score
+            allScores[gameName].push({ name: currentUser, score: score, date: new Date().toLocaleDateString() });
+            
+            // Tri (Décroissant pour la plupart, sauf peut-être Chrono Démineur ?)
+            // Ici on assume plus c'est haut mieux c'est. Pour Démineur (temps), on inversera la logique dans le jeu
+            if(gameName === 'mine') {
+                allScores[gameName].sort((a,b) => a.score - b.score); // Petit temps = mieux
+            } else {
+                allScores[gameName].sort((a,b) => b.score - a.score); // Grand score = mieux
+            }
+
+            // Garde Top 10
+            allScores[gameName] = allScores[gameName].slice(0, 10);
+            
+            localStorage.setItem('arcadeLeaderboard', JSON.stringify(allScores));
+        }
+
+        function openLeaderboard() {
+            document.getElementById('leaderboardOverlay').style.display = 'flex';
+            generateLeaderboardTabs();
+        }
+
+        function closeLeaderboard() {
+            document.getElementById('leaderboardOverlay').style.display = 'none';
+        }
+
+        function generateLeaderboardTabs() {
+            const games = [
+                {id:'flappy', name:'Flappy'},
+                {id:'tetris', name:'Tetris'},
+                {id:'snake', name:'Snake'},
+                {id:'mine', name:'Démineur'},
+                {id:'tron', name:'Tron'},
+                {id:'pong', name:'Pong'}
+            ];
+            
+            const tabsContainer = document.getElementById('lbTabs');
+            tabsContainer.innerHTML = '';
+            
+            games.forEach((g, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'lb-tab';
+                if(idx === 0) btn.classList.add('active');
+                btn.innerText = g.name;
+                btn.onclick = () => {
+                    document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+                    btn.classList.add('active');
+                    showLeaderboardData(g.id);
+                };
+                tabsContainer.appendChild(btn);
+            });
+            
+            showLeaderboardData(games[0].id); // Affiche le premier par défaut
+        }
+
+        function showLeaderboardData(gameId) {
+            const tbody = document.getElementById('lbBody');
+            tbody.innerHTML = '';
+            
+            let allScores = JSON.parse(localStorage.getItem('arcadeLeaderboard')) || {};
+            let scores = allScores[gameId] || [];
+
+            if(scores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3">Aucun score enregistré</td></tr>';
+                return;
+            }
+
+            scores.forEach((s, idx) => {
+                const tr = document.createElement('tr');
+                let medal = "";
+                if(idx===0) medal = "🥇 ";
+                if(idx===1) medal = "🥈 ";
+                if(idx===2) medal = "🥉 ";
+                
+                tr.innerHTML = `<td>${medal}#${idx+1}</td><td>${s.name}</td><td>${s.score} ${gameId === 'mine' ? 's' : ''}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
         // === HELPERS MOBILE ===
         function simulateKey(code) {
             const e = new KeyboardEvent('keydown', { keyCode: code, which: code });
@@ -823,13 +1009,13 @@
         function loadFlappySystem() { hub.style.display='none'; flappyRoot.style.display='flex'; document.getElementById('flappyMenu').style.display='block'; document.getElementById('flappyGameContainer').style.display='none'; }
 
         // ============================
-        // === FLAPPY BIRD LOGIC (NEW GRAPHICS) ===
+        // === FLAPPY BIRD LOGIC (NEW GRAPHICS + SCORE SAVE) ===
         // ============================
         const fCanvas = document.getElementById('flappyCanvas');
         const fCtx = fCanvas.getContext('2d');
         const fScoreEl = document.getElementById('fScore');
         
-        let flappyBird = { x: 50, y: 150, w: 24, h: 24, velocity: 0 }; // Slightly larger hitbox
+        let flappyBird = { x: 50, y: 150, w: 24, h: 24, velocity: 0 }; 
         let flappyPipes = [];
         let flappyScore = 0;
         let flappyLoopId;
@@ -872,7 +1058,7 @@
             flappyBird.y += flappyBird.velocity;
 
             // Collision Sol / Plafond
-            if(flappyBird.y + flappyBird.h >= fCanvas.height - 40 || flappyBird.y <= 0) { // -40 for ground
+            if(flappyBird.y + flappyBird.h >= fCanvas.height - 40 || flappyBird.y <= 0) { 
                 gameOverFlappy();
                 return;
             }
@@ -910,20 +1096,15 @@
             flappyLoopId = requestAnimationFrame(loopFlappy);
         }
 
-        // --- NOUVELLES FONCTIONS DE DESSIN ---
-
         function drawFlappyBackground() {
-            // Sky Gradient
             const grd = fCtx.createLinearGradient(0, 0, 0, fCanvas.height);
-            grd.addColorStop(0, "#4fc3f7"); // Light blue
-            grd.addColorStop(1, "#2980b9"); // Darker blue
+            grd.addColorStop(0, "#4fc3f7");
+            grd.addColorStop(1, "#2980b9");
             fCtx.fillStyle = grd;
             fCtx.fillRect(0, 0, fCanvas.width, fCanvas.height);
-
-            // Ground
-            fCtx.fillStyle = '#27ae60'; // Grass green
+            fCtx.fillStyle = '#27ae60'; 
             fCtx.fillRect(0, fCanvas.height - 40, fCanvas.width, 40);
-            fCtx.fillStyle = '#e67e22'; // Dirt line
+            fCtx.fillStyle = '#e67e22'; 
             fCtx.fillRect(0, fCanvas.height - 45, fCanvas.width, 5);
         }
 
@@ -932,61 +1113,21 @@
             const capColor = '#27ae60';
             const capHeight = 20;
             const capOverhang = 4;
-
             for(let p of pipes) {
-                 // Main stem
-                 fCtx.fillStyle = pipeColor;
-                 fCtx.fillRect(p.x, p.y, p.w, p.h);
-
-                 // Cap logic
+                 fCtx.fillStyle = pipeColor; fCtx.fillRect(p.x, p.y, p.w, p.h);
                  fCtx.fillStyle = capColor;
-                 if(p.y === 0) {
-                     // Top pipe - cap at bottom
-                     fCtx.fillRect(p.x - capOverhang, p.h - capHeight, p.w + capOverhang*2, capHeight);
-                 } else {
-                     // Bottom pipe - cap at top
-                     fCtx.fillRect(p.x - capOverhang, p.y, p.w + capOverhang*2, capHeight);
-                 }
+                 if(p.y === 0) fCtx.fillRect(p.x - capOverhang, p.h - capHeight, p.w + capOverhang*2, capHeight);
+                 else fCtx.fillRect(p.x - capOverhang, p.y, p.w + capOverhang*2, capHeight);
             }
         }
 
         function drawFlappyBirdStyled(x, y, w, h) {
-            const centerX = x + w/2;
-            const centerY = y + h/2;
-            const radius = w/2;
-
-            // Body (Circle)
-            fCtx.beginPath();
-            fCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-            fCtx.fillStyle = '#f1c40f'; // Yellow
-            fCtx.fill();
-            fCtx.strokeStyle = '#f39c12'; // Darker orange outline
-            fCtx.lineWidth = 2;
-            fCtx.stroke();
-
-            // Wing (Ellipse)
-            fCtx.beginPath();
-            fCtx.ellipse(centerX - 5, centerY, radius/1.5, radius/2.5, Math.PI / 4, 0, Math.PI * 2);
-            fCtx.fillStyle = '#f39c12';
-            fCtx.fill();
-
-            // Eye (White circle + black pupil)
-            fCtx.beginPath();
-            fCtx.arc(centerX + radius/2, centerY - radius/4, radius/3, 0, Math.PI*2);
-            fCtx.fillStyle = 'white';
-            fCtx.fill();
-            fCtx.beginPath();
-            fCtx.arc(centerX + radius/1.5, centerY - radius/4, radius/6, 0, Math.PI*2);
-            fCtx.fillStyle = 'black';
-            fCtx.fill();
-
-            // Beak (Triangle)
-            fCtx.beginPath();
-            fCtx.moveTo(centerX + radius - 2, centerY + 2);
-            fCtx.lineTo(centerX + radius + 8, centerY + 6);
-            fCtx.lineTo(centerX + radius - 2, centerY + 10);
-            fCtx.fillStyle = '#e67e22'; // Orange
-            fCtx.fill();
+            const centerX = x + w/2; const centerY = y + h/2; const radius = w/2;
+            fCtx.beginPath(); fCtx.arc(centerX, centerY, radius, 0, Math.PI * 2); fCtx.fillStyle = '#f1c40f'; fCtx.fill(); fCtx.strokeStyle = '#f39c12'; fCtx.lineWidth = 2; fCtx.stroke();
+            fCtx.beginPath(); fCtx.ellipse(centerX - 5, centerY, radius/1.5, radius/2.5, Math.PI / 4, 0, Math.PI * 2); fCtx.fillStyle = '#f39c12'; fCtx.fill();
+            fCtx.beginPath(); fCtx.arc(centerX + radius/2, centerY - radius/4, radius/3, 0, Math.PI*2); fCtx.fillStyle = 'white'; fCtx.fill();
+            fCtx.beginPath(); fCtx.arc(centerX + radius/1.5, centerY - radius/4, radius/6, 0, Math.PI*2); fCtx.fillStyle = 'black'; fCtx.fill();
+            fCtx.beginPath(); fCtx.moveTo(centerX + radius - 2, centerY + 2); fCtx.lineTo(centerX + radius + 8, centerY + 6); fCtx.lineTo(centerX + radius - 2, centerY + 10); fCtx.fillStyle = '#e67e22'; fCtx.fill();
         }
 
         function drawFlappy() {
@@ -994,7 +1135,6 @@
             drawFlappyPipesStyled(flappyPipes);
             drawFlappyBirdStyled(flappyBird.x, flappyBird.y, flappyBird.w, flappyBird.h);
         }
-        // ------------------------------------
 
         function jumpFlappy() {
             if(fGameState === 'ready') {
@@ -1009,162 +1149,14 @@
         function gameOverFlappy() {
             fGameState = 'over';
             stopFlappy();
-            // Show Overlay
+            // SAVE SCORE
+            saveHighScore('flappy', flappyScore);
             document.getElementById('fFinalScore').innerText = flappyScore;
             document.getElementById('flappyOverlay').style.display = 'block';
         }
 
         // ============================
-        // === MASTERMIND LOGIC ===
-        // ============================
-        const mmColors = ['#e74c3c', '#2ecc71', '#3498db', '#f1c40f', '#9b59b6', '#00cec9']; // R, G, B, Y, P, C
-        let mmSecret = [];
-        let mmTurn = 0;
-        let mmCurrentGuess = [];
-        let mmGameOver = false;
-
-        function startMastermind() {
-            document.getElementById('mmMenu').style.display = 'none';
-            document.getElementById('mmGameContainer').style.display = 'flex';
-            currentGameMode = 'mastermind';
-            
-            // Generate secret
-            mmSecret = [];
-            for(let i=0; i<4; i++) mmSecret.push(Math.floor(Math.random() * 6));
-            
-            mmTurn = 0;
-            mmCurrentGuess = [];
-            mmGameOver = false;
-            
-            renderMastermind();
-        }
-
-        function renderMastermind() {
-            const board = document.getElementById('mmBoard');
-            board.innerHTML = '';
-            
-            // Previous rows
-            for(let i=0; i<10; i++) {
-                const row = document.createElement('div');
-                row.className = 'mm-row';
-                row.id = `mmRow${i}`;
-                
-                // Holes
-                const holesDiv = document.createElement('div');
-                holesDiv.className = 'mm-holes';
-                for(let j=0; j<4; j++) {
-                    const hole = document.createElement('div');
-                    hole.className = 'mm-hole';
-                    // Active row filling
-                    if(i === mmTurn && mmCurrentGuess[j] !== undefined) {
-                        hole.style.backgroundColor = mmColors[mmCurrentGuess[j]];
-                    }
-                    hole.id = `mmHole_${i}_${j}`;
-                    holesDiv.appendChild(hole);
-                }
-                row.appendChild(holesDiv);
-
-                // Feedback
-                const feedbackDiv = document.createElement('div');
-                feedbackDiv.className = 'mm-feedback';
-                feedbackDiv.id = `mmFeed${i}`;
-                row.appendChild(feedbackDiv);
-
-                board.appendChild(row);
-            }
-
-            // Selector
-            const selector = document.getElementById('mmSelector');
-            selector.innerHTML = '';
-            mmColors.forEach((col, idx) => {
-                const btn = document.createElement('div');
-                btn.className = 'mm-btn-color';
-                btn.style.backgroundColor = col;
-                btn.onclick = () => mmInputColor(idx);
-                selector.appendChild(btn);
-            });
-        }
-
-        function mmInputColor(colorIdx) {
-            if(mmGameOver || mmCurrentGuess.length >= 4) return;
-            mmCurrentGuess.push(colorIdx);
-            // Update visual directly
-            const hole = document.getElementById(`mmHole_${mmTurn}_${mmCurrentGuess.length-1}`);
-            if(hole) hole.style.backgroundColor = mmColors[colorIdx];
-        }
-
-        function submitMmGuess() {
-            if(mmGameOver || mmCurrentGuess.length !== 4) {
-                alert("Remplissez la ligne (4 couleurs) !");
-                return;
-            }
-
-            // Logic to calculate pegs (Corrected)
-            let blacks = 0;
-            let whites = 0;
-            
-            let tempSecret = [...mmSecret];
-            let tempGuess = [...mmCurrentGuess];
-
-            // 1. Blacks
-            for(let i=0; i<4; i++) {
-                if(tempGuess[i] === tempSecret[i]) {
-                    blacks++;
-                    tempSecret[i] = -1; // Mark handled
-                    tempGuess[i] = -2; // Mark handled
-                }
-            }
-
-            // 2. Whites
-            for(let i=0; i<4; i++) {
-                if(tempGuess[i] !== -2) { 
-                    let idx = tempSecret.indexOf(tempGuess[i]);
-                    if(idx !== -1) {
-                        whites++;
-                        tempSecret[idx] = -1; // Mark handled
-                    }
-                }
-            }
-
-            // Display Feedback (Sorted: Black first, then White)
-            const feedDiv = document.getElementById(`mmFeed${mmTurn}`);
-            for(let k=0; k<blacks; k++) {
-                const p = document.createElement('div'); p.className='mm-peg black'; feedDiv.appendChild(p);
-            }
-            for(let k=0; k<whites; k++) {
-                const p = document.createElement('div'); p.className='mm-peg white'; feedDiv.appendChild(p);
-            }
-
-            // Check Win
-            if(blacks === 4) {
-                mmGameOver = true;
-                alert("GAGNÉ ! Code trouvé !");
-                return;
-            }
-
-            mmTurn++;
-            mmCurrentGuess = [];
-            if(mmTurn >= 10) {
-                mmGameOver = true;
-                alert("PERDU ! Le code était : " + mmSecret.map(i=>['R','V','B','J','Vi','C'][i]).join(', '));
-            }
-        }
-
-        function hackMastermind() {
-            if(currentGameMode !== 'mastermind' || mmGameOver) {
-                alert("Lancez une partie d'abord !");
-                closeVault();
-                return;
-            }
-            const pos = Math.floor(Math.random() * 4);
-            const colIdx = mmSecret[pos];
-            const colNames = ['Rouge', 'Vert', 'Bleu', 'Jaune', 'Violet', 'Cyan'];
-            alert(`HACK INFO:\nPosition ${pos+1} est ${colNames[colIdx]}`);
-            closeVault();
-        }
-
-        // ============================
-        // === PONG LOGIC ===
+        // === PONG LOGIC (WITH DELAY & SCORE SAVE) ===
         // ============================
         const pCanvas = document.getElementById('pongCanvas');
         const pCtx = pCanvas.getContext('2d');
@@ -1183,8 +1175,7 @@
             document.getElementById('pongGameContainer').style.display = 'flex';
             pCanvas.style.display = 'block'; 
             currentGameMode = 'pong';
-            // No D-PAD for Pong (Touch Move)
-
+            
             pCanvas.width = pConfigW;
             pCanvas.height = pConfigH;
 
@@ -1203,39 +1194,33 @@
 
         function stopPong() {
             if(pLoopId) cancelAnimationFrame(pLoopId);
+            // SAVE SCORE P1 IF > 0
+            if(pPad1.score > 0) saveHighScore('pong', pPad1.score);
         }
 
         function resetBall() {
             pBall.x = pCanvas.width / 2;
             pBall.y = pCanvas.height / 2;
-            pIsResetting = true; // Pause la balle
+            pIsResetting = true; 
 
             setTimeout(() => {
                 let speed = pConfigSpeed; 
                 let dirX = Math.random() > 0.5 ? 1 : -1;
                 pBall.dx = speed * dirX;
                 pBall.dy = (Math.random() * speed * 2) - speed; 
-                pIsResetting = false; // Lance la balle
-            }, 1000); // 1 seconde de délai
+                pIsResetting = false; 
+            }, 1000); 
         }
 
         function loopPong() {
             if(currentGameMode !== 'pong') return;
 
-            // La balle ne bouge que si on n'est pas en pause
             if (!pIsResetting) {
                 pBall.x += pBall.dx;
                 pBall.y += pBall.dy;
 
-                // FIX: Balle coincée dans le sol
-                if(pBall.y - pBall.r < 0) {
-                    pBall.y = pBall.r; 
-                    pBall.dy = -pBall.dy;
-                }
-                if(pBall.y + pBall.r > pCanvas.height) {
-                    pBall.y = pCanvas.height - pBall.r; 
-                    pBall.dy = -pBall.dy;
-                }
+                if(pBall.y - pBall.r < 0) { pBall.y = pBall.r; pBall.dy = -pBall.dy; }
+                if(pBall.y + pBall.r > pCanvas.height) { pBall.y = pCanvas.height - pBall.r; pBall.dy = -pBall.dy; }
 
                 if(pBall.x - pBall.r < pPad1.x + pPad1.w && pBall.y > pPad1.y && pBall.y < pPad1.y + pPad1.h) {
                     pBall.dx = Math.abs(pBall.dx); 
@@ -1260,7 +1245,6 @@
                 }
             }
 
-            // L'IA et les raquettes bougent toujours (pour se préparer)
             let targetY = pBall.y - (pPad2.h / 2);
             pPad2.y += (targetY - pPad2.y) * pDifficulty;
             if(pPad2.y < 0) pPad2.y = 0;
@@ -1292,7 +1276,7 @@
         pCanvas.addEventListener('mousemove', (e) => {
             if(currentGameMode !== 'pong') return;
             const rect = pCanvas.getBoundingClientRect();
-            const scaleY = pCanvas.height / rect.height; // Important pour le redimensionnement
+            const scaleY = pCanvas.height / rect.height; 
             let mouseY = (e.clientY - rect.top) * scaleY;
             pPad1.y = mouseY - (pPad1.h/2);
             if(pPad1.y < 0) pPad1.y = 0;
@@ -1303,7 +1287,7 @@
             if(currentGameMode !== 'pong') return;
             e.preventDefault(); 
             const rect = pCanvas.getBoundingClientRect();
-            const scaleY = pCanvas.height / rect.height; // Important pour le redimensionnement
+            const scaleY = pCanvas.height / rect.height; 
             let touchY = (e.touches[0].clientY - rect.top) * scaleY;
             pPad1.y = touchY - (pPad1.h/2);
             if(pPad1.y < 0) pPad1.y = 0;
@@ -1359,7 +1343,7 @@
             drawTron(); // Premier dessin
         }
 
-        function stopTron() { clearInterval(tronInterval); }
+        function stopTron() { clearInterval(tronInterval); saveHighScore('tron', tronP1.score); }
 
         function updateTron() {
             const cols = trCanvas.width / tronGridSize;
@@ -1649,7 +1633,7 @@
             drawTetris();
         }
 
-        function stopTetris() { clearInterval(tInterval); }
+        function stopTetris() { clearInterval(tInterval); saveHighScore('tetris', tScore); }
 
         function createPiece() {
             const id = Math.floor(Math.random() * SHAPES.length);
@@ -1855,7 +1839,7 @@
         const sCanvas=document.getElementById("snakeCanvas"), sCtx=sCanvas.getContext("2d"), sScoreEl=document.getElementById("snakeScoreVal");
         let sInterval, sTileCount=20, sGridSize=20, sHeadX=10, sHeadY=10, sAppleX=5, sAppleY=5, sVelX=0, sVelY=0, sTrail=[], sTail=5, sScore=0, sWallsSolid=false;
         function startSnakeGame(speed, mapSize) { sWallsSolid=document.getElementById('snakeWallCheck').checked; document.getElementById('snakeMenu').style.display='none'; sCanvas.style.display='block'; document.getElementById('snakeScoreBoard').style.display='block'; currentGameMode='snake'; sTileCount=mapSize; sGridSize=sCanvas.width/sTileCount; resetSnakeVars(); sInterval=setInterval(loopSnake, speed); showMobileControls('dpad'); }
-        function stopSnake() { clearInterval(sInterval); }
+        function stopSnake() { clearInterval(sInterval); saveHighScore('snake', sScore); }
         function resetSnakeVars() { sHeadX=Math.floor(sTileCount/2); sHeadY=Math.floor(sTileCount/2); sTrail=[]; sTail=5; sScore=0; sVelX=0; sVelY=0; sScoreEl.innerText=sScore; placeSnakeApple(); }
         function loopSnake() { sHeadX+=sVelX; sHeadY+=sVelY; if(sWallsSolid){if(sHeadX<0||sHeadX>=sTileCount||sHeadY<0||sHeadY>=sTileCount){snakeGameOver();return;}}else{if(sHeadX<0)sHeadX=sTileCount-1;if(sHeadX>=sTileCount)sHeadX=0;if(sHeadY<0)sHeadY=sTileCount-1;if(sHeadY>=sTileCount)sHeadY=0;} sCtx.fillStyle="black"; sCtx.fillRect(0,0,sCanvas.width,sCanvas.height); sCtx.fillStyle="red"; sCtx.fillRect(sAppleX*sGridSize,sAppleY*sGridSize,sGridSize-1,sGridSize-1); sCtx.fillStyle="lime"; for(let i=0;i<sTrail.length;i++){sCtx.fillRect(sTrail[i].x*sGridSize,sTrail[i].y*sGridSize,sGridSize-1,sGridSize-1);if(sTrail[i].x===sHeadX&&sTrail[i].y===sHeadY&&sTail>5){snakeGameOver();return;}} sTrail.push({x:sHeadX,y:sHeadY}); while(sTrail.length>sTail)sTrail.shift(); if(sAppleX===sHeadX&&sAppleY===sHeadY){sTail++;sScore++;sScoreEl.innerText=sScore;placeSnakeApple();} }
         function placeSnakeApple() { sAppleX=Math.floor(Math.random()*sTileCount); sAppleY=Math.floor(Math.random()*sTileCount); }
@@ -1874,7 +1858,7 @@
         function addMineFlag(square) { if (mGameOver || square.classList.contains('revealed')) return; if (!square.classList.contains('flag')) { if (mFlags < mBombs) { square.classList.add('flag'); square.innerHTML = '🚩'; mFlags++; checkMineWin(); } } else { square.classList.remove('flag'); square.innerHTML = ''; mFlags--; } mFlagsEl.innerHTML = mBombs - mFlags; }
         function clickMine(square) { if (mGameOver || square.classList.contains('revealed') || square.classList.contains('flag')) return; if (square.dataset.type === 'bomb') { mGameOver = true; stopMine(); mSquares.forEach(sq => { if (sq.dataset.type === 'bomb') { sq.innerHTML = '💣'; sq.classList.add('bomb'); } }); square.classList.add('bomb'); } else { let total = square.getAttribute('data'); if (total != 0) { square.classList.add('revealed'); square.innerHTML = total; square.classList.add('c'+total); } else { checkMineSquare(square, square.id); } } square.classList.add('revealed'); checkMineWin(); }
         function checkMineSquare(square, currentId) { const isLeft = (currentId % mWidth === 0); const isRight = (currentId % mWidth === mWidth -1); setTimeout(() => { const newId = parseInt(currentId); const neighbors = []; if (newId > 0 && !isLeft) neighbors.push(newId - 1); if (newId > mWidth - 1 && !isRight) neighbors.push(newId + 1 - mWidth); if (newId >= mWidth) neighbors.push(newId - mWidth); if (newId > mWidth && !isLeft) neighbors.push(newId - 1 - mWidth); if (newId < mWidth * mWidth - 1 && !isRight) neighbors.push(newId + 1); if (newId < mWidth * mWidth - mWidth && !isLeft) neighbors.push(newId - 1 + mWidth); if (newId < mWidth * mWidth - mWidth - 1 && !isRight) neighbors.push(newId + 1 + mWidth); if (newId < mWidth * mWidth - mWidth) neighbors.push(newId + mWidth); neighbors.forEach(nId => { const nSq = document.getElementById(nId); if (nSq && !nSq.classList.contains('revealed') && !nSq.classList.contains('flag')) clickMine(nSq); }); }, 10); }
-        function checkMineWin() { let rev = 0; mSquares.forEach(sq => { if(sq.classList.contains('revealed')) rev++; }); if (rev === (mWidth * mWidth - mBombs)) { mGameOver = true; stopMine(); alert("GAGNÉ DÉMINEUR ! Temps : " + mSec + "s"); } }
+        function checkMineWin() { let rev = 0; mSquares.forEach(sq => { if(sq.classList.contains('revealed')) rev++; }); if (rev === (mWidth * mWidth - mBombs)) { mGameOver = true; stopMine(); saveHighScore('mine', mSec); alert("GAGNÉ DÉMINEUR ! Temps : " + mSec + "s"); } }
 
         // === LOGIQUE GÉNÉRIQUE JEUX DE GRILLE (TTT & P4) ===
         function checkGenericWin(board, rows, cols, winLen, player) {
@@ -1961,3 +1945,4 @@
     </script>
 </body>
 </html>
+
