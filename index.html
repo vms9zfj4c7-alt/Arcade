@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate - Mobile Fix (V9)</title>
+    <title>Arcade Ultimate - V10 Fluid</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -26,14 +26,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Permet le scroll */
+            justify-content: flex-start;
             min-height: 100vh;
             width: 100%;
             user-select: none;
             overflow-x: hidden;
-            overflow-y: auto; 
             touch-action: pan-y;
-            padding-bottom: 100px; /* Plus d'espace pour les contrôles */
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -80,7 +78,7 @@
         }
 
         /* HUB */
-        #mainHub { position: relative; border: 2px solid var(--accent-gold); }
+        #mainHub { position: relative; border: 2px solid var(--accent-gold); margin-top: 60px; }
         #vaultBtn { position: absolute; top: 15px; right: 15px; background: none; font-size: 24px; padding: 0; cursor: pointer; opacity: 0.6; transition: opacity 0.3s; box-shadow: none; }
         #vaultBtn:hover { opacity: 1; transform: scale(1.2); }
 
@@ -116,19 +114,18 @@
         .btn-medium { background-color: #f39c12; }
         .btn-hard { background-color: #e74c3c; }
 
-        /* CONTAINERS JEUX */
+        /* CONTAINERS JEUX (FIX CENTRAGE) */
         #snakeRoot, #minesweeperRoot, #tictactoeRoot, #connect4Root, #tetrisRoot, #pongRoot, #tronRoot, #mmRoot, #flappyRoot { 
             display: none; 
             flex-direction: column; 
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center; /* CENTRAGE VERTICAL FIX */
             width: 100%; 
             min-height: 100vh;
             position: absolute;
             top: 0; left: 0;
             background-color: var(--bg-color);
-            padding-top: 60px;
-            padding-bottom: 200px; /* Plus d'espace en bas pour les contrôles */
+            padding: 20px 0 100px 0;
             box-sizing: border-box;
             z-index: 10;
         }
@@ -142,7 +139,7 @@
             border-radius: 4px; 
             margin: 0 auto; 
             max-width: 95vw; 
-            max-height: 65vh;
+            max-height: 70vh;
             height: auto;
             width: auto;
             touch-action: none; 
@@ -157,43 +154,76 @@
         .score-box { padding: 10px 15px; background: #16213e; border-radius: 8px; border: 1px solid #30475e; min-width: 60px; text-align: center; }
         .p1-score { color: #e74c3c; border-bottom: 3px solid #e74c3c; } .p2-score { color: #3498db; border-bottom: 3px solid #3498db; } .p2-score-c4 { color: #f1c40f; border-bottom: 3px solid #f1c40f; }
 
-        /* GRIDS & CELLS */
-        #grid, .dynamic-grid { 
-            display: grid; 
-            gap: 2px; 
-            background-color: var(--panel-bg); 
-            padding: 5px; 
-            border-radius: 10px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-            position: relative; 
-            margin: 0 auto; 
+        /* --- GRILLES FLUIDES (CSS GRID) --- */
+        #grid { /* Démineur */
+            display: grid;
+            gap: 2px;
+            background-color: var(--panel-bg);
+            padding: 5px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin: 0 auto;
             touch-action: none;
-            max-width: 98vw; /* Empêche le débordement sur mobile */
+            width: 95vw; /* FLUIDE */
+            max-width: 400px; /* LIMITE */
+            /* grid-template-columns défini via JS style */
         }
-        .cell, .ttt-cell, .c4-cell { display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
+        
+        .dynamic-grid { /* TTT et C4 */
+            display: grid;
+            gap: 5px;
+            background-color: var(--panel-bg);
+            padding: 5px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            margin: 0 auto;
+            touch-action: none;
+            width: 90vw; /* FLUIDE */
+            max-width: 400px;
+        }
+
+        /* CELLULES FLUIDES AVEC ASPECT RATIO */
+        .cell, .ttt-cell, .c4-cell { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: transform 0.2s;
+            width: auto; /* Laisse le grid gérer */
+            height: auto;
+            aspect-ratio: 1 / 1; /* GARANTIT LE CARRÉ PARFAIT */
+        }
         
         /* Mine */
-        /* RESPONSIVE TAILLE CELLULE */
-        .cell { width: 30px; height: 30px; background-color: #0f3460; border-radius: 3px; font-size: 18px; }
-        @media (max-width: 400px) { .cell { width: 24px; height: 24px; font-size: 14px; } }
-
+        .cell { background-color: #0f3460; border-radius: 3px; font-size: 18px; }
         .cell:hover { background-color: #1f4287; } .cell.revealed { background-color: #2c2c54; cursor: default; } .cell.bomb { background-color: #e94560; } .cell.flag { color: #f1c40f; }
         .c1 { color: #3498db; } .c2 { color: #2ecc71; } .c3 { color: #e74c3c; }
         
         /* TTT */
-        .dynamic-grid { gap: 5px; background-color: #30475e; }
-        .ttt-cell { background-color: var(--panel-bg); font-size: 2em; color: white; width: 60px; height: 60px; }
-        @media (max-width: 400px) { .ttt-cell { width: 50px; height: 50px; font-size: 1.5em; } }
+        .dynamic-grid.ttt-grid-style { background-color: #30475e; }
+        .ttt-cell { background-color: var(--panel-bg); font-size: clamp(20px, 8vw, 40px); color: white; border-radius: 4px; }
         .ttt-cell:hover { background-color: #2c3e50; } .ttt-cell.x { color: #e74c3c; } .ttt-cell.o { color: #3498db; }
         
         /* Connect 4 */
-        #c4Grid { background-color: #0984e3; gap: 4px; padding: 5px; }
-        .c4-cell { background-color: var(--bg-color); border-radius: 50%; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); width: 45px; height: 45px;}
-        @media (max-width: 400px) { .c4-cell { width: 34px; height: 34px; } }
+        .dynamic-grid.c4-grid-style { background-color: #0984e3; gap: 1%; padding: 2%; }
+        .c4-cell { background-color: var(--bg-color); border-radius: 50%; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
         .c4-cell.red { background-color: #e74c3c; } .c4-cell.yellow { background-color: #f1c40f; }
         
         .disappear { transform: scale(0); opacity: 0; }
         .winning-line { position: absolute; background-color: white; border-radius: 5px; transform-origin: left center; z-index: 20; display: none; box-shadow: 0 0 10px white; pointer-events: none; }
+
+        /* BOUTON ACTION FIXE (RELANCER) */
+        .btn-action-fix {
+            width: auto !important;
+            min-width: 120px;
+            max-width: 200px;
+            padding: 10px 20px;
+            font-size: 16px;
+            height: 50px;
+            flex-shrink: 0;
+        }
 
         /* TETRIS UI */
         #tetrisGameContainer { display: none; flex-direction: column; gap: 10px; align-items: center; justify-content: center; }
@@ -566,10 +596,10 @@
                 <div class="score-box p2-score">O : <span id="scoreO">0</span></div>
             </div>
             <div id="tttStatus" style="font-size: 24px; margin-bottom: 15px; color: #f1c40f; font-weight: bold;">Tour de : X</div>
-            <div id="tttGrid" class="dynamic-grid"></div>
-            <div style="margin-top: 20px; display: flex; gap: 15px;">
-                <button style="background-color: #27ae60;" onclick="triggerResetTTT()">🔄 Relancer</button>
-                <button style="background-color: #95a5a6;" onclick="backToTTTMenu()">Menu</button>
+            <div id="tttGrid" class="dynamic-grid ttt-grid-style"></div>
+            <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                <button class="btn-action-fix" style="background-color: #27ae60;" onclick="triggerResetTTT()">🔄 Relancer</button>
+                <button class="btn-action-fix" style="background-color: #95a5a6;" onclick="backToTTTMenu()">Menu</button>
             </div>
         </div>
     </div>
@@ -591,10 +621,10 @@
                 <div class="score-box p2-score-c4">J : <span id="c4ScoreYellow">0</span></div>
             </div>
             <div id="c4Status" style="font-size: 24px; margin-bottom: 15px; color: #f1c40f; font-weight: bold;">Tour de : ROUGE</div>
-            <div id="c4Grid" class="dynamic-grid"></div>
-            <div style="margin-top: 20px; display: flex; gap: 15px;">
-                <button style="background-color: #27ae60;" onclick="triggerResetC4()">🔄 Relancer</button>
-                <button style="background-color: #95a5a6;" onclick="backToC4Menu()">Menu</button>
+            <div id="c4Grid" class="dynamic-grid c4-grid-style"></div>
+            <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                <button class="btn-action-fix" style="background-color: #27ae60;" onclick="triggerResetC4()">🔄 Relancer</button>
+                <button class="btn-action-fix" style="background-color: #95a5a6;" onclick="backToC4Menu()">Menu</button>
             </div>
         </div>
     </div>
@@ -1736,14 +1766,13 @@
         function placeSnakeApple() { sAppleX=Math.floor(Math.random()*sTileCount); sAppleY=Math.floor(Math.random()*sTileCount); }
         function snakeGameOver() { stopSnake(); alert("Perdu ! Score Snake : " + sScore); document.getElementById('snakeMenu').style.display='block'; sCanvas.style.display='none'; document.getElementById('snakeScoreBoard').style.display='none'; hideMobileControls(); }
 
-        // === MINESWEEPER LOGIC ===
+        // === MINESWEEPER LOGIC (FIX FLUIDE) ===
         const mGrid = document.getElementById('grid'), mFlagsEl = document.getElementById('flagsLeft'), mTimerEl = document.getElementById('mineTimer');
         let mWidth = 10, mBombs = 10, mSquares = [], mGameOver = false, mFlags = 0, mSec = 0, mTimerId;
         function startMineGame(w, b) { mWidth = w; mBombs = b; document.getElementById('mineMenu').style.display = 'none'; document.getElementById('mineGameContainer').style.display = 'flex'; currentGameMode = 'mine'; 
-        // CORRECTION MOBILE
-        let cellSize = (window.innerWidth < 400) ? 24 : 30; 
-        mGrid.style.gridTemplateColumns = `repeat(${mWidth}, ${cellSize}px)`; 
-        document.getElementById('mineHeader').style.width = `${(mWidth * (cellSize + 2)) + 20}px`; initMineBoard(); }
+        // 100% FLUID FIX
+        mGrid.style.gridTemplateColumns = `repeat(${mWidth}, 1fr)`; 
+        document.getElementById('mineHeader').style.width = '95vw'; initMineBoard(); }
         function stopMine() { clearInterval(mTimerId); }
         function initMineBoard() { stopMine(); mGrid.innerHTML = ''; mSquares = []; mGameOver = false; mFlags = 0; mSec = 0; mTimerEl.innerHTML = '0'; mFlagsEl.innerHTML = mBombs; mTimerId = setInterval(() => { if(!mGameOver) { mSec++; mTimerEl.innerHTML = mSec; } }, 1000); createMineGrid(); }
         function createMineGrid() { const bombsArray = Array(mBombs).fill('bomb'); const emptyArray = Array(mWidth * mWidth - mBombs).fill('valid'); const gameArray = emptyArray.concat(bombsArray); for (let i = gameArray.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [gameArray[i], gameArray[j]] = [gameArray[j], gameArray[i]]; } for(let i = 0; i < mWidth * mWidth; i++) { const square = document.createElement('div'); square.setAttribute('id', i); square.classList.add('cell'); square.dataset.type = gameArray[i]; square.addEventListener('click', () => clickMine(square)); square.oncontextmenu = (e) => { e.preventDefault(); addMineFlag(square); }; mGrid.appendChild(square); mSquares.push(square); } for (let i = 0; i < mSquares.length; i++) { let total = 0; const isLeft = (i % mWidth === 0); const isRight = (i % mWidth === mWidth -1); if (mSquares[i].dataset.type === 'valid') { if (i > 0 && !isLeft && mSquares[i-1].dataset.type === 'bomb') total++; if (i > mWidth-1 && !isRight && mSquares[i+1-mWidth].dataset.type === 'bomb') total++; if (i > mWidth && mSquares[i-mWidth].dataset.type === 'bomb') total++; if (i > mWidth+1 && !isLeft && mSquares[i-1-mWidth].dataset.type === 'bomb') total++; if (i < mWidth*mWidth-2 && !isRight && mSquares[i+1].dataset.type === 'bomb') total++; if (i < mWidth*mWidth-mWidth && !isLeft && mSquares[i-1+mWidth].dataset.type === 'bomb') total++; if (i < mWidth*mWidth-mWidth-2 && !isRight && mSquares[i+1+mWidth].dataset.type === 'bomb') total++; if (i < mWidth*mWidth-mWidth-1 && mSquares[i+mWidth].dataset.type === 'bomb') total++; mSquares[i].setAttribute('data', total); } } }
@@ -1761,17 +1790,21 @@
             return null;
         }
 
-        function drawGenericLine(winInfo, container, cellSize, gap) {
+        // FIX LIGNE GAGNANTE POUR GRILLE FLUIDE
+        function drawGenericLine(winInfo, container, gap) {
+            // Recalculer la taille réelle de la case car c'est du VW maintenant
+            const cellWidth = container.firstElementChild.getBoundingClientRect().width;
+            
             const line = document.createElement('div'); line.className = 'winning-line'; line.style.height = '6px';
-            const startX = 10 + (winInfo.c * (cellSize + gap)) + (cellSize / 2);
-            const startY = 10 + (winInfo.r * (cellSize + gap)) + (cellSize / 2);
+            const startX = 10 + (winInfo.c * (cellWidth + gap)) + (cellWidth / 2);
+            const startY = 10 + (winInfo.r * (cellWidth + gap)) + (cellWidth / 2);
             let endR = winInfo.r, endC = winInfo.c;
             if(winInfo.type === 'horiz') endC += (winInfo.len - 1);
             if(winInfo.type === 'vert') endR += (winInfo.len - 1);
             if(winInfo.type === 'diagDR') { endR += (winInfo.len - 1); endC += (winInfo.len - 1); }
             if(winInfo.type === 'diagUR') { endR -= (winInfo.len - 1); endC += (winInfo.len - 1); }
-            const endX = 10 + (endC * (cellSize + gap)) + (cellSize / 2);
-            const endY = 10 + (endR * (cellSize + gap)) + (cellSize / 2);
+            const endX = 10 + (endC * (cellWidth + gap)) + (cellWidth / 2);
+            const endY = 10 + (endR * (cellWidth + gap)) + (cellWidth / 2);
             const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
             const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
             line.style.width = length + 'px'; line.style.left = startX + 'px'; line.style.top = (startY - 3) + 'px';
@@ -1785,9 +1818,8 @@
         function startTTT(mode) { 
             tttMode = mode; if(mode !== 'pvp') { tttSize=3; tttWinLen=3; }
             document.getElementById('tttMenu').style.display = 'none'; document.getElementById('tttGameContainer').style.display = 'flex'; currentGameMode = 'tictactoe'; tttScoreX = 0; tttScoreO = 0; updateTTTScoreBoard(); 
-            // CORRECTION MOBILE
-            let cellSize = (window.innerWidth < 400) ? 50 : 60;
-            tttGrid.style.gridTemplateColumns = `repeat(${tttSize}, ${cellSize}px)`; tttGrid.style.gridTemplateRows = `repeat(${tttSize}, ${cellSize}px)`; resetTTT(false); 
+            // FIX FLUIDE
+            tttGrid.style.gridTemplateColumns = `repeat(${tttSize}, 1fr)`; resetTTT(false); 
         }
         function backToTTTMenu() { document.getElementById('tttGameContainer').style.display = 'none'; document.getElementById('tttMenu').style.display = 'block'; }
         function triggerResetTTT() { if(!tttGameActive && checkBoardEmpty(tttBoard)) return; document.querySelectorAll('.ttt-cell').forEach(c => c.classList.add('disappear')); const line = tttGrid.querySelector('.winning-line'); if(line) line.remove(); setTimeout(() => { resetTTT(true); }, 300); }
@@ -1797,18 +1829,14 @@
         function handleTTTClick(r, c) { if (tttBoard[r][c] !== '' || !tttGameActive) return; tttBoard[r][c] = tttCurrentPlayer; renderTTT(); const win = checkGenericWin(tttBoard, tttSize, tttSize, tttWinLen, tttCurrentPlayer); 
         if(win) { 
             tttStatus.innerText = `Le joueur ${tttCurrentPlayer} a gagné !`; tttGameActive = false; 
-            // CORRECTION LIGNE
-            let cellSize = (window.innerWidth < 400) ? 50 : 60;
-            drawGenericLine(win, tttGrid, cellSize, 5); if(tttCurrentPlayer === 'X') tttScoreX++; else tttScoreO++; updateTTTScoreBoard(); return; 
+            drawGenericLine(win, tttGrid, 5); if(tttCurrentPlayer === 'X') tttScoreX++; else tttScoreO++; updateTTTScoreBoard(); return; 
         } if (checkBoardFull(tttBoard)) { tttStatus.innerText = "Match Nul !"; tttGameActive = false; return; } tttCurrentPlayer = tttCurrentPlayer === 'X' ? 'O' : 'X'; tttStatus.innerText = "Tour de : " + tttCurrentPlayer; if (tttGameActive && tttMode.startsWith('cpu') && tttCurrentPlayer === 'O') { setTimeout(cpuMoveTTT, 500); } }
         function checkBoardEmpty(b) { for(let r=0;r<b.length;r++)for(let c=0;c<b[0].length;c++)if(b[r][c]!=='')return false; return true; }
         function checkBoardFull(b) { for(let r=0;r<b.length;r++)for(let c=0;c<b[0].length;c++)if(b[r][c]==='')return false; return true; }
         function cpuMoveTTT() { if(!tttGameActive) return; let move = findBestMoveGeneric(tttBoard, tttSize, tttSize, tttWinLen, 'O', 'X'); tttBoard[move.r][move.c] = 'O'; renderTTT(); const win = checkGenericWin(tttBoard, tttSize, tttSize, tttWinLen, 'O'); 
         if(win) { 
             tttStatus.innerText = "O a gagné !"; tttGameActive = false; tttScoreO++; updateTTTScoreBoard(); 
-            // CORRECTION LIGNE
-            let cellSize = (window.innerWidth < 400) ? 50 : 60;
-            drawGenericLine(win, tttGrid, cellSize, 5); return; 
+            drawGenericLine(win, tttGrid, 5); return; 
         } if(checkBoardFull(tttBoard)) { tttStatus.innerText = "Match Nul"; tttGameActive = false; return; } tttCurrentPlayer = 'X'; tttStatus.innerText = "Tour de : X"; }
         function findBestMoveGeneric(board, rows, cols, winLen, me, opp) { for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) { if(board[r][c] === '') { board[r][c] = me; if(checkGenericWin(board, rows, cols, winLen, me)) { board[r][c] = ''; return {r,c}; } board[r][c] = ''; } } for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) { if(board[r][c] === '') { board[r][c] = opp; if(checkGenericWin(board, rows, cols, winLen, opp)) { board[r][c] = ''; return {r,c}; } board[r][c] = ''; } } let available = []; for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) if(board[r][c]==='') available.push({r,c}); return available[Math.floor(Math.random()*available.length)]; }
         
@@ -1816,9 +1844,8 @@
         const c4Grid = document.getElementById('c4Grid'), c4Status = document.getElementById('c4Status'), c4ScoreRedEl = document.getElementById('c4ScoreRed'), c4ScoreYellowEl = document.getElementById('c4ScoreYellow');
         let c4Board = [], c4Player = 'R', c4Active = true, c4Mode = 'pvp', c4ScoreR = 0, c4ScoreY = 0;
         function startC4(mode) { c4Mode = mode; if(mode !== 'pvp') { c4Rows=6; c4Cols=7; c4WinLen=4; } document.getElementById('c4Menu').style.display = 'none'; document.getElementById('c4GameContainer').style.display = 'flex'; currentGameMode = 'connect4'; c4ScoreR = 0; c4ScoreY = 0; updateC4Score(); 
-        // CORRECTION MOBILE
-        let cellSize = (window.innerWidth < 400) ? 34 : 45;
-        c4Grid.style.gridTemplateColumns = `repeat(${c4Cols}, ${cellSize}px)`; c4Grid.style.gridTemplateRows = `repeat(${c4Rows}, ${cellSize}px)`; resetC4(); }
+        // FIX FLUIDE
+        c4Grid.style.gridTemplateColumns = `repeat(${c4Cols}, 1fr)`; resetC4(); }
         function backToC4Menu() { document.getElementById('c4GameContainer').style.display = 'none'; document.getElementById('c4Menu').style.display = 'block'; }
         function triggerResetC4() { if(!c4Active && checkBoardFullC4(c4Board)) return; document.querySelectorAll('.c4-cell').forEach(c => c.classList.add('disappear')); const line = c4Grid.querySelector('.winning-line'); if(line) line.remove(); setTimeout(resetC4, 300); }
         function resetC4() { c4Board = Array(c4Rows).fill(null).map(() => Array(c4Cols).fill(null)); c4Player = c4Start; c4Active = true; c4Status.innerText = "Tour de : " + (c4Player === 'R' ? "ROUGE" : "JAUNE"); c4Status.style.color = (c4Player === 'R' ? "#e74c3c" : "#f1c40f"); renderC4(); if (c4Mode.startsWith('cpu') && c4Player === 'Y') setTimeout(c4Cpu, 600); }
@@ -1827,18 +1854,14 @@
         function handleC4Click(col) { if (!c4Active) return; const r = getLowRow(c4Board, col); if (r === -1) return; c4Board[r][col] = c4Player; renderC4(); const win = checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, c4Player); 
         if(win) { 
             c4Status.innerText = (c4Player === 'R' ? "ROUGE" : "JAUNE") + " GAGNE !"; c4Active = false; if(c4Player === 'R') c4ScoreR++; else c4ScoreY++; updateC4Score(); 
-            // CORRECTION LIGNE
-            let cellSize = (window.innerWidth < 400) ? 34 : 45;
-            drawGenericLine(win, c4Grid, cellSize, 4); return; 
+            drawGenericLine(win, c4Grid, 4); return; 
         } if (checkBoardFullC4(c4Board)) { c4Status.innerText = "MATCH NUL"; c4Status.style.color = "#fff"; c4Active = false; return; } c4Player = c4Player === 'R' ? 'Y' : 'R'; c4Status.innerText = "Tour de : " + (c4Player === 'R' ? "ROUGE" : "JAUNE"); c4Status.style.color = c4Player === 'R' ? "#e74c3c" : "#f1c40f"; if (c4Active && c4Mode.startsWith('cpu') && c4Player === 'Y') setTimeout(c4Cpu, 500); }
         function getLowRow(b, c) { for (let r = c4Rows - 1; r >= 0; r--) if (b[r][c] === null) return r; return -1; }
         function checkBoardFullC4(b) { for (let c = 0; c < c4Cols; c++) if (b[0][c] === null) return false; return true; }
         function c4Cpu() { if (!c4Active) return; let col = -1; for(let c=0; c<c4Cols; c++) { let r = getLowRow(c4Board, c); if(r!==-1) { c4Board[r][c] = 'Y'; if(checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, 'Y')) { c4Board[r][c] = null; col=c; break; } c4Board[r][c] = null; } } if(col === -1) { for(let c=0; c<c4Cols; c++) { let r = getLowRow(c4Board, c); if(r!==-1) { c4Board[r][c] = 'R'; if(checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, 'R')) { c4Board[r][c] = null; col=c; break; } c4Board[r][c] = null; } } } if(col === -1) { let valid = []; for(let c=0;c<c4Cols;c++) if(c4Board[0][c]===null) valid.push(c); col = valid[Math.floor(Math.random()*valid.length)]; } const row = getLowRow(c4Board, col); c4Board[row][col] = 'Y'; renderC4(); const win = checkGenericWin(c4Board, c4Rows, c4Cols, c4WinLen, 'Y'); 
         if (win) { 
             c4Status.innerText = "JAUNE GAGNE !"; c4Active = false; c4ScoreY++; updateC4Score(); 
-            // CORRECTION LIGNE
-            let cellSize = (window.innerWidth < 400) ? 34 : 45;
-            drawGenericLine(win, c4Grid, cellSize, 4); return; 
+            drawGenericLine(win, c4Grid, 4); return; 
         } if (checkBoardFullC4(c4Board)) { c4Status.innerText = "MATCH NUL"; c4Active = false; return; } c4Player = 'R'; c4Status.innerText = "Tour de : ROUGE"; c4Status.style.color = "#e74c3c"; }
     </script>
 </body>
