@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate - V12 Vertical Fix</title>
+    <title>Arcade Ultimate - V13 Pong Delay</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -115,7 +115,7 @@
         .btn-medium { background-color: #f39c12; }
         .btn-hard { background-color: #e74c3c; }
 
-        /* --- CONTAINERS JEUX (ROOT) --- */
+        /* CONTAINERS JEUX */
         #snakeRoot, #minesweeperRoot, #tictactoeRoot, #connect4Root, #tetrisRoot, #pongRoot, #tronRoot, #mmRoot, #flappyRoot { 
             display: none; 
             flex-direction: column; 
@@ -133,8 +133,7 @@
             overflow-y: auto; 
         }
 
-        /* --- CONTENEUR INTERNE FORCÉ EN COLONNE (C'EST LA SOLUTION) --- */
-        /* Cela force tous les éléments du jeu (score, grille, boutons) à s'empiler verticalement */
+        /* CONTENEUR INTERNE */
         .game-inner-container {
             display: flex;
             flex-direction: column;
@@ -166,8 +165,8 @@
         .score-box { padding: 10px 15px; background: #16213e; border-radius: 8px; border: 1px solid #30475e; min-width: 60px; text-align: center; }
         .p1-score { color: #e74c3c; border-bottom: 3px solid #e74c3c; } .p2-score { color: #3498db; border-bottom: 3px solid #3498db; } .p2-score-c4 { color: #f1c40f; border-bottom: 3px solid #f1c40f; }
 
-        /* --- GRILLES FLUIDES --- */
-        #grid { /* Démineur */
+        /* GRILLES */
+        #grid { 
             display: grid;
             gap: 2px;
             background-color: var(--panel-bg);
@@ -180,7 +179,7 @@
             max-width: 400px;
         }
         
-        .dynamic-grid { /* TTT et C4 */
+        .dynamic-grid { 
             display: grid;
             gap: 5px;
             background-color: var(--panel-bg);
@@ -224,14 +223,13 @@
         .disappear { transform: scale(0); opacity: 0; }
         .winning-line { position: absolute; background-color: white; border-radius: 5px; transform-origin: left center; z-index: 20; display: none; box-shadow: 0 0 10px white; pointer-events: none; }
 
-        /* --- BOUTONS D'ACTION (RELANCER / MENU) --- */
-        /* Configuration Flex pour centrer les boutons sous la grille */
+        /* BOUTONS D'ACTION */
         .game-controls-bottom {
-            margin-top: 30px; /* Force l'espace entre la grille et les boutons */
+            margin-top: 30px; 
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
-            justify-content: center; /* Centre horizontalement */
+            justify-content: center; 
             width: 100%;
             z-index: 50; 
             position: relative;
@@ -248,7 +246,7 @@
             background-color: #27ae60;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            display: inline-block; /* S'assure qu'ils ne flottent pas */
+            display: inline-block;
         }
 
         /* TETRIS UI */
@@ -318,7 +316,7 @@
 
         /* --- CONTROLES MOBILES (D-PAD) --- */
         #mobileControls {
-            display: none; /* Masqué par défaut */
+            display: none;
             position: fixed;
             bottom: 20px;
             left: 50%;
@@ -326,7 +324,7 @@
             width: 220px;
             height: 150px;
             z-index: 9000;
-            pointer-events: auto; /* Force la réception des clics */
+            pointer-events: auto;
         }
         
         .dpad-btn {
@@ -354,7 +352,7 @@
 
         /* Petit bouton action (Jump / Rotate) */
         #actionBtn {
-            display: none; /* Masqué par défaut */
+            display: none;
             position: fixed;
             bottom: 40px;
             right: 20px;
@@ -1112,6 +1110,7 @@
         let pPad2 = { x: 670, y: 200, w: 15, h: 100, score: 0 }; 
         let pDifficulty = 0.1; 
         let pLoopId;
+        let pIsResetting = false;
 
         function startPong(speed, diff) {
             document.getElementById('pongMenu').style.display = 'none';
@@ -1130,9 +1129,6 @@
             pScore1El.innerText = 0; pScore2El.innerText = 0;
             pDifficulty = diff;
             
-            const dirX = Math.random() > 0.5 ? 1 : -1;
-            pBall.dx = speed * dirX;
-            pBall.dy = speed;
             resetBall();
 
             if(pLoopId) cancelAnimationFrame(pLoopId);
@@ -1146,53 +1142,63 @@
         function resetBall() {
             pBall.x = pCanvas.width / 2;
             pBall.y = pCanvas.height / 2;
-            let speed = Math.abs(pBall.dx);
-            pBall.dx = -pBall.dx; 
-            pBall.dy = (Math.random() * speed * 2) - speed; 
+            pIsResetting = true; // Pause la balle
+
+            setTimeout(() => {
+                let speed = pConfigSpeed; 
+                let dirX = Math.random() > 0.5 ? 1 : -1;
+                pBall.dx = speed * dirX;
+                pBall.dy = (Math.random() * speed * 2) - speed; 
+                pIsResetting = false; // Lance la balle
+            }, 1000); // 1 seconde de délai
         }
 
         function loopPong() {
             if(currentGameMode !== 'pong') return;
 
-            pBall.x += pBall.dx;
-            pBall.y += pBall.dy;
+            // La balle ne bouge que si on n'est pas en pause
+            if (!pIsResetting) {
+                pBall.x += pBall.dx;
+                pBall.y += pBall.dy;
 
-            // FIX: Balle coincée dans le sol
-            if(pBall.y - pBall.r < 0) {
-                pBall.y = pBall.r; // Sort de la paroi
-                pBall.dy = -pBall.dy;
-            }
-            if(pBall.y + pBall.r > pCanvas.height) {
-                pBall.y = pCanvas.height - pBall.r; // Sort de la paroi
-                pBall.dy = -pBall.dy;
+                // FIX: Balle coincée dans le sol
+                if(pBall.y - pBall.r < 0) {
+                    pBall.y = pBall.r; 
+                    pBall.dy = -pBall.dy;
+                }
+                if(pBall.y + pBall.r > pCanvas.height) {
+                    pBall.y = pCanvas.height - pBall.r; 
+                    pBall.dy = -pBall.dy;
+                }
+
+                if(pBall.x - pBall.r < pPad1.x + pPad1.w && pBall.y > pPad1.y && pBall.y < pPad1.y + pPad1.h) {
+                    pBall.dx = Math.abs(pBall.dx); 
+                    let hitPoint = pBall.y - (pPad1.y + pPad1.h/2);
+                    pBall.dy = hitPoint * 0.2; 
+                    if(pBall.dx < 15) pBall.dx *= 1.03;
+                }
+                if(pBall.x + pBall.r > pPad2.x && pBall.y > pPad2.y && pBall.y < pPad2.y + pPad2.h) {
+                    pBall.dx = -Math.abs(pBall.dx);
+                    let hitPoint = pBall.y - (pPad2.y + pPad2.h/2);
+                    pBall.dy = hitPoint * 0.2;
+                }
+
+                if(pBall.x < 0) {
+                    pPad2.score++;
+                    pScore2El.innerText = pPad2.score;
+                    resetBall();
+                } else if(pBall.x > pCanvas.width) {
+                    pPad1.score++;
+                    pScore1El.innerText = pPad1.score;
+                    resetBall();
+                }
             }
 
+            // L'IA et les raquettes bougent toujours (pour se préparer)
             let targetY = pBall.y - (pPad2.h / 2);
             pPad2.y += (targetY - pPad2.y) * pDifficulty;
             if(pPad2.y < 0) pPad2.y = 0;
             if(pPad2.y + pPad2.h > pCanvas.height) pPad2.y = pCanvas.height - pPad2.h;
-
-            if(pBall.x - pBall.r < pPad1.x + pPad1.w && pBall.y > pPad1.y && pBall.y < pPad1.y + pPad1.h) {
-                pBall.dx = Math.abs(pBall.dx); 
-                let hitPoint = pBall.y - (pPad1.y + pPad1.h/2);
-                pBall.dy = hitPoint * 0.2; 
-                if(pBall.dx < 15) pBall.dx *= 1.03;
-            }
-            if(pBall.x + pBall.r > pPad2.x && pBall.y > pPad2.y && pBall.y < pPad2.y + pPad2.h) {
-                pBall.dx = -Math.abs(pBall.dx);
-                let hitPoint = pBall.y - (pPad2.y + pPad2.h/2);
-                pBall.dy = hitPoint * 0.2;
-            }
-
-            if(pBall.x < 0) {
-                pPad2.score++;
-                pScore2El.innerText = pPad2.score;
-                resetBall();
-            } else if(pBall.x > pCanvas.width) {
-                pPad1.score++;
-                pScore1El.innerText = pPad1.score;
-                resetBall();
-            }
 
             drawPong();
             pLoopId = requestAnimationFrame(loopPong);
