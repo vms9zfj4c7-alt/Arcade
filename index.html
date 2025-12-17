@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate - V11 Scroll Fix</title>
+    <title>Arcade Ultimate - V12 Vertical Fix</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -26,12 +26,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Important pour le scroll */
+            justify-content: flex-start;
             min-height: 100vh;
             width: 100%;
             user-select: none;
             overflow-x: hidden;
-            overflow-y: auto; /* Scroll autorisé */
+            overflow-y: auto;
             touch-action: pan-y;
             -webkit-tap-highlight-color: transparent;
         }
@@ -51,7 +51,7 @@
             width: 90%; 
             max-width: 500px; 
             animation: fadeIn 0.5s ease-out;
-            margin: 80px auto 40px auto; /* Marge haut augmentée */
+            margin: 80px auto 40px auto;
             box-sizing: border-box;
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -115,26 +115,35 @@
         .btn-medium { background-color: #f39c12; }
         .btn-hard { background-color: #e74c3c; }
 
-        /* CONTAINERS JEUX - CORRECTION DU SCROLL */
-        /* On ne centre plus verticalement, on laisse le flux naturel avec du padding */
+        /* --- CONTAINERS JEUX (ROOT) --- */
         #snakeRoot, #minesweeperRoot, #tictactoeRoot, #connect4Root, #tetrisRoot, #pongRoot, #tronRoot, #mmRoot, #flappyRoot { 
             display: none; 
             flex-direction: column; 
             align-items: center;
-            justify-content: flex-start; /* IMPORTANT: Permet aux éléments de s'empiler */
+            justify-content: flex-start;
             width: 100%; 
             min-height: 100vh;
             position: absolute;
             top: 0; left: 0;
             background-color: var(--bg-color);
-            padding-top: 80px; /* Espace pour le bouton retour */
-            padding-bottom: 150px; /* Espace pour voir les boutons en bas */
+            padding-top: 80px;
+            padding-bottom: 150px; 
             box-sizing: border-box;
             z-index: 10;
-            overflow-y: auto; /* Force le scroll si ça dépasse */
+            overflow-y: auto; 
+        }
+
+        /* --- CONTENEUR INTERNE FORCÉ EN COLONNE (C'EST LA SOLUTION) --- */
+        /* Cela force tous les éléments du jeu (score, grille, boutons) à s'empiler verticalement */
+        .game-inner-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
         }
         
-        /* GENERAL CANVAS/GRID - RESPONSIVE */
+        /* GENERAL CANVAS/GRID */
         canvas { 
             background-color: #000; 
             border: 2px solid #ecf0f1; 
@@ -157,7 +166,7 @@
         .score-box { padding: 10px 15px; background: #16213e; border-radius: 8px; border: 1px solid #30475e; min-width: 60px; text-align: center; }
         .p1-score { color: #e74c3c; border-bottom: 3px solid #e74c3c; } .p2-score { color: #3498db; border-bottom: 3px solid #3498db; } .p2-score-c4 { color: #f1c40f; border-bottom: 3px solid #f1c40f; }
 
-        /* --- GRILLES FLUIDES (CSS GRID) --- */
+        /* --- GRILLES FLUIDES --- */
         #grid { /* Démineur */
             display: grid;
             gap: 2px;
@@ -181,11 +190,10 @@
             position: relative;
             margin: 0 auto;
             touch-action: none;
-            width: 90vw; /* Utilise 90% de la largeur écran */
-            max-width: 400px; /* Mais ne dépasse pas 400px */
+            width: 90vw;
+            max-width: 400px;
         }
 
-        /* CELLULES FLUIDES AVEC ASPECT RATIO */
         .cell, .ttt-cell, .c4-cell { 
             display: flex; 
             align-items: center; 
@@ -195,7 +203,7 @@
             transition: transform 0.2s;
             width: auto; 
             height: auto;
-            aspect-ratio: 1 / 1; /* C'est ça qui garde les cases carrées */
+            aspect-ratio: 1 / 1; 
         }
         
         /* Mine */
@@ -216,16 +224,16 @@
         .disappear { transform: scale(0); opacity: 0; }
         .winning-line { position: absolute; background-color: white; border-radius: 5px; transform-origin: left center; z-index: 20; display: none; box-shadow: 0 0 10px white; pointer-events: none; }
 
-        /* BOUTON ACTION FIXE (RELANCER) */
-        /* Ce style assure que les boutons en bas sont visibles et jolis */
+        /* --- BOUTONS D'ACTION (RELANCER / MENU) --- */
+        /* Configuration Flex pour centrer les boutons sous la grille */
         .game-controls-bottom {
-            margin-top: 25px;
+            margin-top: 30px; /* Force l'espace entre la grille et les boutons */
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: center; /* Centre horizontalement */
             width: 100%;
-            z-index: 50; /* Au dessus de tout */
+            z-index: 50; 
             position: relative;
         }
 
@@ -240,31 +248,28 @@
             background-color: #27ae60;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: inline-block; /* S'assure qu'ils ne flottent pas */
         }
 
         /* TETRIS UI */
-        #tetrisGameContainer { display: none; flex-direction: column; gap: 10px; align-items: center; justify-content: center; }
         #tetrisBoard { border: 4px solid #16a085; display: block; box-shadow: 0 0 20px rgba(22, 160, 133, 0.4); max-height: 60vh; }
-        .tetris-ui { display: flex; flex-direction: row; gap: 10px; width: 100%; justify-content: center; }
+        .tetris-ui { display: flex; flex-direction: row; gap: 10px; width: 100%; justify-content: center; margin-top: 10px;}
         .tetris-panel { background-color: var(--panel-bg); border: 2px solid #16a085; border-radius: 10px; padding: 5px; text-align: center; width: 80px; }
         .tetris-panel h4 { margin: 0 0 5px 0; color: #1abc9c; font-size: 12px; }
         #nextPieceCanvas { background-color: #000; border: 1px solid #34495e; margin: 0 auto; display: block; width: 60px; height: 60px;}
         #tetrisScoreVal { font-size: 18px; font-weight: bold; color: white; }
 
         /* PONG UI */
-        #pongGameContainer { display: none; flex-direction: column; align-items: center; width: 100%; }
         #pongCanvas { border: 2px solid #e17055; cursor: none; width: 95%; height: auto; aspect-ratio: 7/5; } 
         #pongScoreBoard { font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #e17055; letter-spacing: 5px; }
 
         /* TRON UI */
-        #tronGameContainer { display: none; flex-direction: column; align-items: center; width: 100%; }
         #tronCanvas { border: 2px solid var(--tron-cyan); box-shadow: 0 0 15px rgba(0, 255, 242, 0.3); background-color: #000; width: 95%; height: auto; aspect-ratio: 3/2; }
         .tron-score { color: var(--tron-cyan); font-family: 'Courier New', monospace; font-size: 18px; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px var(--tron-cyan); }
         .p1-tron { color: var(--tron-cyan); } 
         .p2-tron { color: var(--tron-orange); } 
 
         /* FLAPPY UI */
-        #flappyGameContainer { display: none; flex-direction: column; align-items: center; position: relative; width: 100%; }
         #flappyCanvas { border: 4px solid var(--flappy-green); background-color: #000; width: 90%; max-width: 400px; height: auto; aspect-ratio: 2/3; }
         #flappyScoreBoard { font-family: 'Courier New', monospace; font-size: 30px; font-weight: bold; margin-bottom: 10px; color: var(--flappy-yellow); }
         #flappyOverlay {
@@ -285,7 +290,6 @@
         #flappyOverlay p { font-size: 18px; font-weight: bold; margin: 15px 0; }
 
         /* MASTERMIND UI */
-        #mmGameContainer { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
         .mm-board { background-color: #2d3436; padding: 10px; border-radius: 10px; border: 2px solid #636e72; width: 95%; max-width: 350px; box-sizing: border-box; }
         .mm-row { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 5px; justify-content: center; }
         .mm-holes { display: flex; gap: 5px; }
@@ -469,7 +473,7 @@
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="openVault()">🔑 Config Coffre</button>
         </div>
-        <div id="flappyGameContainer">
+        <div id="flappyGameContainer" class="game-inner-container">
             <div id="flappyScoreBoard">Score: <span id="fScore">0</span></div>
             <canvas id="flappyCanvas" width="400" height="600"></canvas>
             
@@ -493,7 +497,7 @@
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="startVaultPong()">🔑 Config Coffre</button>
         </div>
-        <div id="pongGameContainer">
+        <div id="pongGameContainer" class="game-inner-container">
             <div id="pongScoreBoard"><span id="pScore1">0</span> - <span id="pScore2">0</span></div>
             <canvas id="pongCanvas" width="700" height="500"></canvas>
         </div>
@@ -511,7 +515,7 @@
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="openVault()">🔑 Config Coffre</button>
         </div>
-        <div id="tronGameContainer">
+        <div id="tronGameContainer" class="game-inner-container">
             <div class="tron-score"><span class="p1-tron">P1: <span id="tP1Score">0</span></span> | <span class="p2-tron">P2: <span id="tP2Score">0</span></span></div>
             <canvas id="tronCanvas" width="600" height="400"></canvas>
         </div>
@@ -526,7 +530,7 @@
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="openVault()">🔑 Config Coffre</button>
         </div>
-        <div id="mmGameContainer" style="display:none;">
+        <div id="mmGameContainer" class="game-inner-container" style="display:none;">
             <div class="mm-board" id="mmBoard">
                 </div>
             <div class="mm-selector" id="mmSelector">
@@ -546,7 +550,7 @@
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="startVaultTetris()">🔑 Config Coffre</button>
         </div>
-        <div id="tetrisGameContainer">
+        <div id="tetrisGameContainer" class="game-inner-container">
             <canvas id="tetrisBoard" width="300" height="600"></canvas>
             <div class="tetris-ui">
                 <div class="tetris-panel">
@@ -586,7 +590,7 @@
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="startVaultMine()">🔑 Config Coffre</button>
         </div>
-        <div id="mineGameContainer">
+        <div id="mineGameContainer" class="game-inner-container">
             <div class="header-mine" id="mineHeader">
                 <div>🚩 <span id="flagsLeft">0</span></div>
                 <button style="padding: 5px 15px; font-size:20px; margin:0; background-color:#e67e22;" onclick="initMineBoard()">😎</button>
@@ -607,7 +611,7 @@
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="startVaultTTT()">🔑 Config Coffre</button>
         </div>
-        <div id="tttGameContainer">
+        <div id="tttGameContainer" class="game-inner-container">
             <div class="score-board-common">
                 <div class="score-box p1-score">X : <span id="scoreX">0</span></div>
                 <div class="score-box p2-score">O : <span id="scoreO">0</span></div>
@@ -633,7 +637,7 @@
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="startVaultC4()">🔑 Config Coffre</button>
         </div>
-        <div id="c4GameContainer">
+        <div id="c4GameContainer" class="game-inner-container">
             <div class="score-board-common">
                 <div class="score-box p1-score">R : <span id="c4ScoreRed">0</span></div>
                 <div class="score-box p2-score-c4">J : <span id="c4ScoreYellow">0</span></div>
@@ -811,7 +815,7 @@
         }
 
         function loadSnakeSystem() { hub.style.display='none'; snakeRoot.style.display='flex'; document.getElementById('snakeMenu').style.display='block'; document.getElementById('snakeCanvas').style.display='none'; document.getElementById('snakeScoreBoard').style.display='none'; }
-        function loadMineSystem() { hub.style.display='none'; mineRoot.style.display='flex'; document.getElementById('mineMenu').style.display='block'; document.getElementById('mineGameContainer').style.display='none'; }
+        function loadMineSystem() { hub.style.display='none'; mineRoot.style.display='flex'; document.getElementById('mineMenu').style.display='block'; document.getElementById('mineGameContainer').style.display='flex'; }
         function loadTicTacToeSystem() { hub.style.display='none'; tttRoot.style.display='flex'; document.getElementById('tttMenu').style.display='block'; document.getElementById('tttGameContainer').style.display='none'; }
         function loadConnect4System() { hub.style.display='none'; c4Root.style.display='flex'; document.getElementById('c4Menu').style.display='block'; document.getElementById('c4GameContainer').style.display='none'; }
         function loadTetrisSystem() { hub.style.display='none'; tetrisRoot.style.display='flex'; document.getElementById('tetrisMenu').style.display='block'; document.getElementById('tetrisGameContainer').style.display='none'; }
