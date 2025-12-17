@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Arcade Ultimate - Neon Edition (V6)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arcade Ultimate - Mobile Edition (V7)</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -30,32 +31,34 @@
             width: 100%;
             user-select: none;
             overflow-x: hidden;
-            touch-action: none;
+            touch-action: none; /* Empêche le scroll pendant le jeu */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        h1 { text-align: center; margin-bottom: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
-        h2 { color: var(--accent-gold); text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid var(--accent-gold); display: inline-block; padding-bottom: 5px;}
+        h1 { text-align: center; margin-bottom: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); font-size: 2rem; }
+        h2 { color: var(--accent-gold); text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid var(--accent-gold); display: inline-block; padding-bottom: 5px; font-size: 1.5rem; }
         h3 { border-bottom: 1px solid #7f8c8d; padding-bottom: 5px; margin-top: 20px; font-size: 16px; color: #3498db; }
 
-        /* MENUS */
+        /* MENUS RESPONSIVE */
         .game-menu-card {
             background-color: var(--panel-bg);
-            padding: 30px;
+            padding: 20px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border: 2px solid #30475e;
             text-align: center;
-            min-width: 360px;
-            max-width: 95vw;
+            width: 90%; /* Largeur relative */
+            max-width: 500px; /* Max pour PC */
             animation: fadeIn 0.5s ease-out;
-            margin: 0 auto;
-            margin-top: 60px;
+            margin: 60px auto 20px auto;
+            box-sizing: border-box;
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
         button {
-            border: none; color: white; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer;
+            border: none; color: white; padding: 15px 25px; border-radius: 8px; font-size: 18px; cursor: pointer;
             transition: all 0.2s; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; overflow: hidden;
+            margin: 5px 0; touch-action: manipulation;
         }
         button:hover { transform: translateY(-3px); box-shadow: 0 7px 15px rgba(0,0,0,0.4); filter: brightness(1.1); }
         button:active { transform: translateY(1px); }
@@ -63,24 +66,25 @@
         /* BOUTON RETOUR (FIXE) */
         .back-to-hub { 
             background-color: #7f8c8d; 
-            padding: 10px 20px; 
+            padding: 8px 15px; 
             font-size: 14px;
             position: fixed;
-            top: 15px;
-            left: 15px;
+            top: 10px;
+            left: 10px;
             z-index: 9999;
             box-shadow: 0 0 10px rgba(0,0,0,0.8);
             border: 1px solid #fff;
+            border-radius: 20px;
         }
 
         /* HUB */
-        #mainHub { position: relative; border: 2px solid var(--accent-gold); margin-top: 0; }
+        #mainHub { position: relative; border: 2px solid var(--accent-gold); margin-top: 20px; }
         #vaultBtn { position: absolute; top: 15px; right: 15px; background: none; font-size: 24px; padding: 0; cursor: pointer; opacity: 0.6; transition: opacity 0.3s; box-shadow: none; }
         #vaultBtn:hover { opacity: 1; transform: scale(1.2); }
 
         /* COFFRE FORT */
         #vaultOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        #vaultContent { background-color: var(--vault-color); padding: 20px; border-radius: 15px; width: 380px; border: 2px solid var(--accent-gold); box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); text-align: center; max-height: 90vh; overflow-y: auto; }
+        #vaultContent { background-color: var(--vault-color); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; border: 2px solid var(--accent-gold); box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); text-align: center; max-height: 85vh; overflow-y: auto; }
         
         #vaultAuth input { font-size: 24px; text-align: center; letter-spacing: 5px; width: 80%; padding: 10px; margin: 15px 0; border-radius: 5px; border: none; background: #ecf0f1; color: #2c3e50;}
         #vaultError { color: #e74c3c; font-weight: bold; display: none; margin-bottom: 10px; animation: shake 0.3s; }
@@ -88,11 +92,11 @@
 
         #vaultSettings { display: none; text-align: left; }
         .vault-group { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .vault-group label { font-size: 13px; color: #bdc3c7; flex: 1; }
-        .vault-group input, .vault-group select { width: 80px; padding: 5px; border-radius: 5px; border: none; background: #ecf0f1; color: #2c3e50; font-weight: bold; }
+        .vault-group label { font-size: 14px; color: #bdc3c7; flex: 1; }
+        .vault-group input, .vault-group select { width: 80px; padding: 8px; border-radius: 5px; border: none; background: #ecf0f1; color: #2c3e50; font-weight: bold; font-size: 16px; }
 
         /* BOUTONS HUB */
-        .btn-hub { width: 280px; display: block; margin: 12px auto; font-size: 18px; padding: 15px; text-align: left; padding-left: 30px; }
+        .btn-hub { width: 100%; max-width: 320px; display: block; margin: 12px auto; font-size: 18px; padding: 15px; text-align: left; padding-left: 20px; box-sizing: border-box; }
         .btn-snake-hub { background: linear-gradient(45deg, #8e44ad, #9b59b6); }
         .btn-mine-hub { background: linear-gradient(45deg, #2980b9, #3498db); }
         .btn-ttt-hub { background: linear-gradient(45deg, #c0392b, #e74c3c); }
@@ -104,7 +108,7 @@
         .btn-flappy-hub { background: linear-gradient(45deg, #f1c40f, #e67e22); box-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
         .btn-custom { background-color: #8e44ad; border: 1px dashed var(--accent-gold); color: var(--accent-gold); width: 100%; } 
 
-        .level-btn { display: block; width: 100%; margin: 10px 0; padding: 12px; font-size: 16px; }
+        .level-btn { display: block; width: 100%; margin: 10px 0; padding: 15px; font-size: 18px; }
         .btn-pvp { background-color: #3498db; }
         .btn-easy { background-color: #2ecc71; }
         .btn-medium { background-color: #f39c12; }
@@ -115,29 +119,45 @@
             display: none; 
             flex-direction: column; 
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start; /* Changé pour mobile */
             width: 100%; 
             min-height: 100vh;
             position: absolute;
             top: 0; left: 0;
             background-color: var(--bg-color);
-            padding-top: 50px;
+            padding-top: 60px;
+            padding-bottom: 150px; /* Espace pour les contrôles */
             box-sizing: border-box;
+            overflow-y: auto;
         }
         
-        /* GENERAL CANVAS/GRID */
-        canvas { background-color: #000; border: 4px solid #ecf0f1; box-shadow: 0 0 20px rgba(0,0,0,0.5); display: none; border-radius: 4px; margin: 0 auto; }
-        .checkbox-container { display: block; margin-bottom: 20px; font-size: 18px; cursor: pointer; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        input[type=checkbox] { transform: scale(1.5); margin-right: 10px; accent-color: var(--accent-gold); }
+        /* GENERAL CANVAS/GRID - RESPONSIVE */
+        canvas { 
+            background-color: #000; 
+            border: 2px solid #ecf0f1; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+            display: none; 
+            border-radius: 4px; 
+            margin: 0 auto; 
+            /* Responsive Magic */
+            max-width: 95vw; 
+            max-height: 70vh;
+            height: auto;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .checkbox-container { display: block; margin-bottom: 20px; font-size: 18px; cursor: pointer; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); width: 100%; box-sizing: border-box; }
+        input[type=checkbox] { transform: scale(1.5); margin-right: 15px; accent-color: var(--accent-gold); }
         
         /* HEADER SCORE */
-        .header-mine { display: flex; justify-content: space-between; width: 100%; background: var(--panel-bg); padding: 10px 20px; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #34495e;}
-        .score-board-common { display: flex; gap: 20px; margin-bottom: 15px; font-size: 20px; font-weight: bold; justify-content: center; }
-        .score-box { padding: 10px 20px; background: #16213e; border-radius: 8px; border: 1px solid #30475e; min-width: 80px; text-align: center; }
+        .header-mine { display: flex; justify-content: space-between; width: 95%; max-width: 400px; background: var(--panel-bg); padding: 10px 20px; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #34495e;}
+        .score-board-common { display: flex; gap: 10px; margin-bottom: 15px; font-size: 18px; font-weight: bold; justify-content: center; flex-wrap: wrap; }
+        .score-box { padding: 10px 15px; background: #16213e; border-radius: 8px; border: 1px solid #30475e; min-width: 60px; text-align: center; }
         .p1-score { color: #e74c3c; border-bottom: 3px solid #e74c3c; } .p2-score { color: #3498db; border-bottom: 3px solid #3498db; } .p2-score-c4 { color: #f1c40f; border-bottom: 3px solid #f1c40f; }
 
         /* GRIDS & CELLS */
-        #grid, .dynamic-grid { display: grid; gap: 2px; background-color: var(--panel-bg); padding: 10px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; margin: 0 auto; }
+        #grid, .dynamic-grid { display: grid; gap: 2px; background-color: var(--panel-bg); padding: 5px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; margin: 0 auto; }
         .cell, .ttt-cell, .c4-cell { display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
         
         /* Mine */
@@ -147,41 +167,41 @@
         
         /* TTT */
         .dynamic-grid { gap: 5px; background-color: #30475e; }
-        .ttt-cell { background-color: var(--panel-bg); font-size: 2em; color: white; }
+        .ttt-cell { background-color: var(--panel-bg); font-size: 2em; color: white; width: 60px; height: 60px; }
         .ttt-cell:hover { background-color: #2c3e50; } .ttt-cell.x { color: #e74c3c; } .ttt-cell.o { color: #3498db; }
         
         /* Connect 4 */
-        #c4Grid { background-color: #0984e3; gap: 8px; }
-        .c4-cell { background-color: var(--bg-color); border-radius: 50%; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        #c4Grid { background-color: #0984e3; gap: 5px; }
+        .c4-cell { background-color: var(--bg-color); border-radius: 50%; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); width: 40px; height: 40px;}
         .c4-cell.red { background-color: #e74c3c; } .c4-cell.yellow { background-color: #f1c40f; }
         
         .disappear { transform: scale(0); opacity: 0; }
         .winning-line { position: absolute; background-color: white; border-radius: 5px; transform-origin: left center; z-index: 20; display: none; box-shadow: 0 0 10px white; pointer-events: none; }
 
         /* TETRIS UI */
-        #tetrisGameContainer { display: none; flex-direction: row; gap: 20px; align-items: flex-start; justify-content: center; }
-        #tetrisBoard { border: 4px solid #16a085; display: block; box-shadow: 0 0 20px rgba(22, 160, 133, 0.4); }
-        .tetris-ui { display: flex; flex-direction: column; gap: 15px; }
-        .tetris-panel { background-color: var(--panel-bg); border: 2px solid #16a085; border-radius: 10px; padding: 10px; text-align: center; width: 100px; }
-        .tetris-panel h4 { margin: 0 0 5px 0; color: #1abc9c; font-size: 14px; }
-        #nextPieceCanvas { background-color: #000; border: 1px solid #34495e; margin: 0 auto; display: block; }
-        #tetrisScoreVal { font-size: 20px; font-weight: bold; color: white; }
+        #tetrisGameContainer { display: none; flex-direction: column; gap: 10px; align-items: center; justify-content: center; }
+        #tetrisBoard { border: 4px solid #16a085; display: block; box-shadow: 0 0 20px rgba(22, 160, 133, 0.4); max-height: 60vh; }
+        .tetris-ui { display: flex; flex-direction: row; gap: 10px; width: 100%; justify-content: center; }
+        .tetris-panel { background-color: var(--panel-bg); border: 2px solid #16a085; border-radius: 10px; padding: 5px; text-align: center; width: 80px; }
+        .tetris-panel h4 { margin: 0 0 5px 0; color: #1abc9c; font-size: 12px; }
+        #nextPieceCanvas { background-color: #000; border: 1px solid #34495e; margin: 0 auto; display: block; width: 60px; height: 60px;}
+        #tetrisScoreVal { font-size: 18px; font-weight: bold; color: white; }
 
         /* PONG UI */
-        #pongGameContainer { display: none; flex-direction: column; align-items: center; }
-        #pongCanvas { border: 4px solid #e17055; cursor: none; } 
-        #pongScoreBoard { font-family: 'Courier New', monospace; font-size: 30px; font-weight: bold; margin-bottom: 10px; color: #e17055; letter-spacing: 5px; }
+        #pongGameContainer { display: none; flex-direction: column; align-items: center; width: 100%; }
+        #pongCanvas { border: 2px solid #e17055; cursor: none; width: 95%; height: auto; aspect-ratio: 7/5; } 
+        #pongScoreBoard { font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #e17055; letter-spacing: 5px; }
 
         /* TRON UI */
-        #tronGameContainer { display: none; flex-direction: column; align-items: center; }
-        #tronCanvas { border: 3px solid var(--tron-cyan); box-shadow: 0 0 25px rgba(0, 255, 242, 0.3); background-color: #000; }
-        .tron-score { color: var(--tron-cyan); font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px var(--tron-cyan); }
+        #tronGameContainer { display: none; flex-direction: column; align-items: center; width: 100%; }
+        #tronCanvas { border: 2px solid var(--tron-cyan); box-shadow: 0 0 15px rgba(0, 255, 242, 0.3); background-color: #000; width: 95%; height: auto; aspect-ratio: 3/2; }
+        .tron-score { color: var(--tron-cyan); font-family: 'Courier New', monospace; font-size: 18px; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px var(--tron-cyan); }
         .p1-tron { color: var(--tron-cyan); } 
         .p2-tron { color: var(--tron-orange); } 
 
         /* FLAPPY UI */
-        #flappyGameContainer { display: none; flex-direction: column; align-items: center; position: relative; }
-        #flappyCanvas { border: 4px solid var(--flappy-green); background-color: #000; }
+        #flappyGameContainer { display: none; flex-direction: column; align-items: center; position: relative; width: 100%; }
+        #flappyCanvas { border: 4px solid var(--flappy-green); background-color: #000; width: 90%; max-width: 400px; height: auto; aspect-ratio: 2/3; }
         #flappyScoreBoard { font-family: 'Courier New', monospace; font-size: 30px; font-weight: bold; margin-bottom: 10px; color: var(--flappy-yellow); }
         #flappyOverlay {
             display: none;
@@ -189,54 +209,112 @@
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background-color: rgba(22, 33, 62, 0.95);
-            padding: 30px;
+            padding: 20px;
             border-radius: 15px;
             border: 2px solid var(--flappy-yellow);
             text-align: center;
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
             z-index: 50;
+            width: 80%;
         }
-        #flappyOverlay h2 { margin-top: 0; color: #e74c3c; }
-        #flappyOverlay p { font-size: 20px; font-weight: bold; margin: 15px 0; }
+        #flappyOverlay h2 { margin-top: 0; color: #e74c3c; font-size: 24px; }
+        #flappyOverlay p { font-size: 18px; font-weight: bold; margin: 15px 0; }
 
         /* MASTERMIND UI */
-        #mmGameContainer { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .mm-board { background-color: #2d3436; padding: 15px; border-radius: 10px; border: 2px solid #636e72; }
-        .mm-row { display: flex; gap: 15px; align-items: center; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 5px; }
-        .mm-holes { display: flex; gap: 10px; }
-        .mm-hole { width: 30px; height: 30px; border-radius: 50%; background-color: #1a1a2e; border: 2px solid #555; cursor: pointer; transition: all 0.2s; }
+        #mmGameContainer { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+        .mm-board { background-color: #2d3436; padding: 10px; border-radius: 10px; border: 2px solid #636e72; width: 95%; max-width: 350px; box-sizing: border-box; }
+        .mm-row { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 5px; justify-content: center; }
+        .mm-holes { display: flex; gap: 5px; }
+        .mm-hole { width: 25px; height: 25px; border-radius: 50%; background-color: #1a1a2e; border: 2px solid #555; cursor: pointer; transition: all 0.2s; }
         .mm-hole.active { box-shadow: 0 0 10px white; border-color: white; }
         
         .mm-feedback { 
             display: flex; 
             flex-direction: row; 
-            gap: 4px; 
-            width: 70px; 
-            height: 30px;
+            gap: 2px; 
+            width: 50px; 
+            height: 25px;
             align-items: center;
             justify-content: center;
             background: rgba(0,0,0,0.3);
             border-radius: 4px;
-            padding: 0 5px;
+            padding: 0 2px;
         }
-        .mm-peg { 
-            width: 12px; 
-            height: 12px; 
-            border-radius: 50%; 
-            background-color: #444; 
-            border: 1px solid #222;
-            flex-shrink: 0;
-        }
+        .mm-peg { width: 10px; height: 10px; border-radius: 50%; background-color: #444; border: 1px solid #222; flex-shrink: 0; }
         .mm-peg.black { background-color: #e74c3c; box-shadow: 0 0 5px #e74c3c; } 
         .mm-peg.white { background-color: #fff; box-shadow: 0 0 5px #fff; } 
         
-        .mm-selector { display: flex; gap: 10px; margin-top: 15px; background: #16213e; padding: 10px; border-radius: 10px; }
-        .mm-btn-color { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; cursor: pointer; transform: scale(0.9); }
-        .mm-btn-color:hover { transform: scale(1.1); }
+        .mm-selector { display: flex; gap: 8px; margin-top: 15px; background: #16213e; padding: 10px; border-radius: 10px; flex-wrap: wrap; justify-content: center; }
+        .mm-btn-color { width: 35px; height: 35px; border-radius: 50%; border: 2px solid white; cursor: pointer; transform: scale(0.9); }
+
+        /* --- CONTROLES MOBILES (D-PAD) --- */
+        #mobileControls {
+            display: none; /* Caché sur PC */
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            height: 150px;
+            z-index: 9000;
+        }
+        
+        @media (hover: none) and (pointer: coarse) {
+            #mobileControls { display: block; } /* Visible sur mobile */
+        }
+
+        .dpad-btn {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            user-select: none;
+            backdrop-filter: blur(5px);
+            touch-action: manipulation;
+        }
+        .dpad-btn:active { background: rgba(241, 196, 15, 0.5); transform: scale(0.95); }
+        
+        #btnUp { top: 0; left: 80px; }
+        #btnDown { bottom: 0; left: 80px; }
+        #btnLeft { top: 45px; left: 0; }
+        #btnRight { top: 45px; right: 0; }
+
+        /* Petit bouton action (Jump / Rotate) */
+        #actionBtn {
+            display: none;
+            position: fixed;
+            bottom: 40px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background: rgba(231, 76, 60, 0.3);
+            border-radius: 50%;
+            border: 2px solid #e74c3c;
+            z-index: 9001;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        @media (hover: none) and (pointer: coarse) { #actionBtn { display: flex; } }
+        #actionBtn:active { background: #e74c3c; }
 
     </style>
 </head>
 <body>
+
+    <div id="mobileControls">
+        <div id="btnUp" class="dpad-btn" ontouchstart="simulateKey(38); return false;">▲</div>
+        <div id="btnLeft" class="dpad-btn" ontouchstart="simulateKey(37); return false;">◀</div>
+        <div id="btnRight" class="dpad-btn" ontouchstart="simulateKey(39); return false;">▶</div>
+        <div id="btnDown" class="dpad-btn" ontouchstart="simulateKey(40); return false;">▼</div>
+    </div>
+    <div id="actionBtn" ontouchstart="simulateKey(32); return false;">ACT</div>
 
     <div id="vaultOverlay">
         <div id="vaultContent">
@@ -253,12 +331,12 @@
                 <h2 style="text-align: center;">⚙️ HACK CONSOLE</h2>
                 
                 <h3>🐦 Flappy Bird</h3>
-                <div class="vault-group"><label>Gravité (Normal: 0.25)</label><input type="number" id="vFlappyGrav" value="0.25" step="0.05"></div>
+                <div class="vault-group"><label>Gravité (0.25)</label><input type="number" id="vFlappyGrav" value="0.25" step="0.05"></div>
                 <div class="vault-group"><label>Espace Tuyaux</label><input type="number" id="vFlappyGap" value="150" min="80" max="300"></div>
 
                 <h3>🏎️ Tron</h3>
-                <div class="vault-group"><label>Vitesse (ms)</label><input type="number" id="vTronSpeed" value="80" min="20" max="200"></div>
-                <div class="vault-group"><label>Longueur Traînée</label><input type="number" id="vTronLen" value="50" min="5" max="500"></div>
+                <div class="vault-group"><label>Vitesse</label><input type="number" id="vTronSpeed" value="80" min="20" max="200"></div>
+                <div class="vault-group"><label>Traînée</label><input type="number" id="vTronLen" value="50" min="5" max="500"></div>
                 <div class="vault-group" style="justify-content: flex-start; gap: 10px;">
                     <label>Traverser Murs</label>
                     <input type="checkbox" id="vTronWall" style="width: 20px; height: 20px;">
@@ -266,16 +344,16 @@
 
                 <h3>🏓 Pong</h3>
                 <div class="vault-group"><label>Vitesse Balle</label><input type="number" id="vPongSpeed" value="5" min="2" max="20"></div>
-                <div class="vault-group"><label>Taille Raquette</label><input type="number" id="vPongPad" value="100" min="30" max="200"></div>
-                <div class="vault-group"><label>Largeur Jeu</label><input type="number" id="vPongW" value="700" min="300" max="1000"></div>
-                <div class="vault-group"><label>Hauteur Jeu</label><input type="number" id="vPongH" value="500" min="300" max="800"></div>
+                <div class="vault-group"><label>Raquette</label><input type="number" id="vPongPad" value="100" min="30" max="200"></div>
+                <div class="vault-group"><label>Largeur</label><input type="number" id="vPongW" value="700" min="300" max="1000"></div>
+                <div class="vault-group"><label>Hauteur</label><input type="number" id="vPongH" value="500" min="300" max="800"></div>
 
                 <h3>🐍 Snake</h3>
-                <div class="vault-group"><label>Vitesse (ms)</label><input type="number" id="vSnakeSpeed" value="80"></div>
+                <div class="vault-group"><label>Vitesse</label><input type="number" id="vSnakeSpeed" value="80"></div>
                 <div class="vault-group"><label>Taille Map</label><input type="number" id="vSnakeSize" value="20"></div>
                 
                 <h3>🧱 Tetris</h3>
-                <div class="vault-group"><label>Vitesse (ms)</label><input type="number" id="vTetrisSpeed" value="500"></div>
+                <div class="vault-group"><label>Vitesse</label><input type="number" id="vTetrisSpeed" value="500"></div>
                 <div class="vault-group"><label>Colonnes</label><input type="number" id="vTetrisCols" value="10" min="5" max="20"></div>
                 <div class="vault-group"><label>Lignes</label><input type="number" id="vTetrisRows" value="20" min="10" max="30"></div>
 
@@ -284,13 +362,13 @@
                 <div class="vault-group"><label>Bombes</label><input type="number" id="vMineBombs" value="20"></div>
 
                 <h3>❌⭕ Morpion</h3>
-                <div class="vault-group"><label>Taille</label><input type="number" id="vTTTSize" value="3" min="3" max="10"></div>
-                <div class="vault-group"><label>Aligner</label><input type="number" id="vTTTWin" value="3" min="3" max="10"></div>
+                <div class="vault-group"><label>Taille</label><input type="number" id="vTTTSize" value="3" min="3" max="5"></div>
+                <div class="vault-group"><label>Aligner</label><input type="number" id="vTTTWin" value="3" min="3" max="5"></div>
 
                 <h3>🔴🟡 Puissance 4</h3>
-                <div class="vault-group"><label>Cols</label><input type="number" id="vC4Cols" value="7" min="5" max="12"></div>
-                <div class="vault-group"><label>Lignes</label><input type="number" id="vC4Rows" value="6" min="5" max="12"></div>
-                <div class="vault-group"><label>Aligner</label><input type="number" id="vC4Win" value="4" min="3" max="8"></div>
+                <div class="vault-group"><label>Cols</label><input type="number" id="vC4Cols" value="7" min="5" max="8"></div>
+                <div class="vault-group"><label>Lignes</label><input type="number" id="vC4Rows" value="6" min="5" max="8"></div>
+                <div class="vault-group"><label>Aligner</label><input type="number" id="vC4Win" value="4" min="3" max="6"></div>
                 
                 <h3>🎨 Mastermind</h3>
                 <button style="width: 100%; background-color: #fd79a8; margin-bottom: 10px;" onclick="hackMastermind()">🔓 DÉCRYPTAGE PARTIEL</button>
@@ -318,7 +396,7 @@
     </div>
 
     <div id="flappyRoot">
-        <button class="back-to-hub" onclick="backToHub()">🏠 Retour Accueil</button>
+        <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
         <div id="flappyMenu" class="game-menu-card">
             <h2>🐦 FLAPPY BIRD</h2>
             <p>Espace / Clic pour voler</p>
@@ -340,13 +418,13 @@
     </div>
 
     <div id="pongRoot">
-        <button class="back-to-hub" onclick="backToHub()">🏠 Retour Accueil</button>
+        <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
         <div id="pongMenu" class="game-menu-card">
             <h2>PONG</h2>
-            <p>Souris ou Tactile pour bouger</p>
-            <button class="level-btn btn-easy" onclick="startPong(5, 0.08)">Facile (Lent)</button>
-            <button class="level-btn btn-medium" onclick="startPong(9, 0.12)">Moyen (Normal)</button>
-            <button class="level-btn btn-hard" onclick="startPong(12, 0.2)">Difficile (Expert)</button>
+            <p>Souris ou Tactile</p>
+            <button class="level-btn btn-easy" onclick="startPong(5, 0.08)">Facile</button>
+            <button class="level-btn btn-medium" onclick="startPong(9, 0.12)">Moyen</button>
+            <button class="level-btn btn-hard" onclick="startPong(12, 0.2)">Difficile</button>
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="startVaultPong()">🔑 Config Coffre</button>
         </div>
@@ -357,14 +435,14 @@
     </div>
 
     <div id="tronRoot">
-        <button class="back-to-hub" onclick="backToHub()">🏠 Retour Accueil</button>
+        <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
         <div id="tronMenu" class="game-menu-card">
-            <h2>🏎️ TRON: NEON GRID</h2>
-            <p>P1 (Cyan): ZQSD | P2 (Rouge): Flèches</p>
+            <h2>🏎️ TRON</h2>
+            <p>P1: ZQSD | P2: Flèches</p>
             <button class="level-btn btn-pvp" onclick="startTron('pvp')">👥 2 Joueurs</button>
-            <button class="level-btn btn-easy" onclick="startTron('easy')">🤖 IA Facile (Survie)</button>
-            <button class="level-btn btn-medium" onclick="startTron('medium')">🤖 IA Moyen (Sécurité)</button>
-            <button class="level-btn btn-hard" onclick="startTron('hard')">🤖 IA Difficile (Piège)</button>
+            <button class="level-btn btn-easy" onclick="startTron('easy')">🤖 IA Facile</button>
+            <button class="level-btn btn-medium" onclick="startTron('medium')">🤖 IA Moyen</button>
+            <button class="level-btn btn-hard" onclick="startTron('hard')">🤖 IA Difficile</button>
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="openVault()">🔑 Config Coffre</button>
         </div>
@@ -375,11 +453,10 @@
     </div>
 
     <div id="mmRoot">
-        <button class="back-to-hub" onclick="backToHub()">🏠 Retour Accueil</button>
+        <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
         <div id="mmMenu" class="game-menu-card">
             <h2>🎨 MASTERMIND</h2>
-            <p>Trouvez le code secret de 4 couleurs.</p>
-            <p><span style="color:#e74c3c">●</span> Bien placé | <span style="color:#fff">●</span> Bonne couleur</p>
+            <p>Code secret 4 couleurs</p>
             <button class="level-btn btn-easy" onclick="startMastermind()">JOUER</button>
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="openVault()">🔑 Config Coffre</button>
@@ -394,10 +471,10 @@
     </div>
 
     <div id="tetrisRoot">
-        <button class="back-to-hub" onclick="backToHub()">🏠 Retour Accueil</button>
+        <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
         <div id="tetrisMenu" class="game-menu-card">
             <h2>TETRIS</h2>
-            <p>Flèches + Clic pour tourner</p>
+            <p>Flèches + Clic rotation</p>
             <button class="level-btn btn-easy" onclick="startTetris(800)">Lent</button>
             <button class="level-btn btn-medium" onclick="startTetris(500)">Normal</button>
             <button class="level-btn btn-hard" onclick="startTetris(200)">Rapide</button>
@@ -420,7 +497,7 @@
     </div>
 
     <div id="snakeRoot">
-        <button class="back-to-hub" onclick="backToHub()">🏠 Retour Accueil</button>
+        <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
         <div id="snakeMenu" class="game-menu-card">
             <h2>SNAKE</h2>
             <label class="checkbox-container"><input type="checkbox" id="snakeWallCheck"> Murs Mortels</label>
@@ -435,7 +512,7 @@
     </div>
 
     <div id="minesweeperRoot">
-        <button class="back-to-hub" onclick="backToHub()">🏠 Retour Accueil</button>
+        <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
         <div id="mineMenu" class="game-menu-card">
             <h2>DÉMINEUR</h2>
             <button class="level-btn btn-easy" onclick="startMineGame(10, 15)">Facile</button>
@@ -455,7 +532,7 @@
     </div>
 
     <div id="tictactoeRoot">
-        <button class="back-to-hub" onclick="backToHub()">🏠 Retour Accueil</button>
+        <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
         <div id="tttMenu" class="game-menu-card">
             <h2>MORPION</h2>
             <button class="level-btn btn-pvp" onclick="startTTT('pvp')">👥 2 Joueurs</button>
@@ -480,7 +557,7 @@
     </div>
 
     <div id="connect4Root">
-        <button class="back-to-hub" onclick="backToHub()">🏠 Retour Accueil</button>
+        <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
         <div id="c4Menu" class="game-menu-card">
             <h2>PUISSANCE 4</h2>
             <button class="level-btn btn-pvp" onclick="startC4('pvp')">👥 2 Joueurs</button>
@@ -505,6 +582,12 @@
     </div>
 
     <script>
+        // === HELPERS MOBILE ===
+        function simulateKey(code) {
+            const e = new KeyboardEvent('keydown', { keyCode: code, which: code });
+            document.dispatchEvent(e);
+        }
+
         // === GESTION HACK AVEC CODE PIN ===
         let tttSize=3, tttWinLen=3, tttStart='X';
         let c4Rows=6, c4Cols=7, c4WinLen=4, c4Start='R';
@@ -538,10 +621,10 @@
         }
 
         function saveAndCloseVault() {
-            let ts=parseInt(document.getElementById('vTTTSize').value); if(ts<3)ts=3;if(ts>10)ts=10; tttSize=ts;
+            let ts=parseInt(document.getElementById('vTTTSize').value); if(ts<3)ts=3;if(ts>5)ts=5; tttSize=ts; // Limit mobile
             let tw=parseInt(document.getElementById('vTTTWin').value); if(tw<3)tw=3;if(tw>ts)tw=ts; tttWinLen=tw;
-            let cr=parseInt(document.getElementById('vC4Rows').value); if(cr<5)cr=5;if(cr>12)cr=12; c4Rows=cr;
-            let cc=parseInt(document.getElementById('vC4Cols').value); if(cc<5)cc=5;if(cc>12)cc=12; c4Cols=cc;
+            let cr=parseInt(document.getElementById('vC4Rows').value); if(cr<5)cr=5;if(cr>8)cr=8; c4Rows=cr;
+            let cc=parseInt(document.getElementById('vC4Cols').value); if(cc<5)cc=5;if(cc>8)cc=8; c4Cols=cc;
             let cw=parseInt(document.getElementById('vC4Win').value); if(cw<3)cw=3;if(cw>Math.max(cr,cc))cw=Math.max(cr,cc); c4WinLen=cw;
             tConfigSpeed = parseInt(document.getElementById('vTetrisSpeed').value)||500;
             tConfigCols = parseInt(document.getElementById('vTetrisCols').value)||10;
@@ -1037,8 +1120,8 @@
         pCanvas.addEventListener('mousemove', (e) => {
             if(currentGameMode !== 'pong') return;
             const rect = pCanvas.getBoundingClientRect();
-            const root = document.documentElement;
-            let mouseY = e.clientY - rect.top - root.scrollTop;
+            const scaleY = pCanvas.height / rect.height; // Important pour le redimensionnement
+            let mouseY = (e.clientY - rect.top) * scaleY;
             pPad1.y = mouseY - (pPad1.h/2);
             if(pPad1.y < 0) pPad1.y = 0;
             if(pPad1.y + pPad1.h > pCanvas.height) pPad1.y = pCanvas.height - pPad1.h;
@@ -1048,7 +1131,8 @@
             if(currentGameMode !== 'pong') return;
             e.preventDefault(); 
             const rect = pCanvas.getBoundingClientRect();
-            let touchY = e.touches[0].clientY - rect.top;
+            const scaleY = pCanvas.height / rect.height; // Important pour le redimensionnement
+            let touchY = (e.touches[0].clientY - rect.top) * scaleY;
             pPad1.y = touchY - (pPad1.h/2);
             if(pPad1.y < 0) pPad1.y = 0;
             if(pPad1.y + pPad1.h > pCanvas.height) pPad1.y = pCanvas.height - pPad1.h;
@@ -1541,7 +1625,7 @@
                 if(k === 37) { tPiece.x--; if(collide(tBoard, tPiece)) tPiece.x++; } 
                 else if(k === 39) { tPiece.x++; if(collide(tBoard, tPiece)) tPiece.x--; } 
                 else if(k === 40) { tPiece.y++; if(collide(tBoard, tPiece)) tPiece.y--; } 
-                else if(k === 38) { playerRotate(); }
+                else if(k === 38 || k===32) { playerRotate(); }
                 drawTetris();
             }
 
