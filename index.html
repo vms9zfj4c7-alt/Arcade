@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate - V13 Pong Delay</title>
+    <title>Arcade Ultimate - V14 Flappy Graphics</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -267,8 +267,8 @@
         .p1-tron { color: var(--tron-cyan); } 
         .p2-tron { color: var(--tron-orange); } 
 
-        /* FLAPPY UI */
-        #flappyCanvas { border: 4px solid var(--flappy-green); background-color: #000; width: 90%; max-width: 400px; height: auto; aspect-ratio: 2/3; }
+        /* FLAPPY UI - CANVAS BORDER REMOVED FOR BETTER SKY */
+        #flappyCanvas { /* border: 4px solid var(--flappy-green); */ background-color: #000; width: 90%; max-width: 400px; height: auto; aspect-ratio: 2/3; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         #flappyScoreBoard { font-family: 'Courier New', monospace; font-size: 30px; font-weight: bold; margin-bottom: 10px; color: var(--flappy-yellow); }
         #flappyOverlay {
             display: none;
@@ -823,37 +823,35 @@
         function loadFlappySystem() { hub.style.display='none'; flappyRoot.style.display='flex'; document.getElementById('flappyMenu').style.display='block'; document.getElementById('flappyGameContainer').style.display='none'; }
 
         // ============================
-        // === FLAPPY BIRD LOGIC ===
+        // === FLAPPY BIRD LOGIC (NEW GRAPHICS) ===
         // ============================
         const fCanvas = document.getElementById('flappyCanvas');
         const fCtx = fCanvas.getContext('2d');
         const fScoreEl = document.getElementById('fScore');
         
-        let flappyBird = { x: 50, y: 150, w: 20, h: 20, velocity: 0 };
+        let flappyBird = { x: 50, y: 150, w: 24, h: 24, velocity: 0 }; // Slightly larger hitbox
         let flappyPipes = [];
         let flappyScore = 0;
         let flappyLoopId;
         let flappyFrame = 0;
         const flappySpeed = 2;
-        let fGameState = 'ready'; // ready, playing, over
+        let fGameState = 'ready'; 
 
         function startFlappy() {
             document.getElementById('flappyMenu').style.display = 'none';
             document.getElementById('flappyGameContainer').style.display = 'flex';
-            document.getElementById('flappyOverlay').style.display = 'none'; // Hide game over
+            document.getElementById('flappyOverlay').style.display = 'none'; 
             fCanvas.style.display = 'block';
             currentGameMode = 'flappy';
-            showMobileControls('action'); // Show only action button
+            showMobileControls('action'); 
             
-            // Reset Vars
-            flappyBird = { x: 50, y: 300, w: 20, h: 20, velocity: 0 };
+            flappyBird = { x: 50, y: 300, w: 24, h: 24, velocity: 0 };
             flappyPipes = [];
             flappyScore = 0;
             fScoreEl.innerText = 0;
             flappyFrame = 0;
             fGameState = 'ready';
 
-            // Draw initial state (Waiting for click)
             if(flappyLoopId) cancelAnimationFrame(flappyLoopId);
             drawFlappy(); 
             fCtx.fillStyle = "white";
@@ -874,16 +872,16 @@
             flappyBird.y += flappyBird.velocity;
 
             // Collision Sol / Plafond
-            if(flappyBird.y + flappyBird.h >= fCanvas.height || flappyBird.y <= 0) {
+            if(flappyBird.y + flappyBird.h >= fCanvas.height - 40 || flappyBird.y <= 0) { // -40 for ground
                 gameOverFlappy();
                 return;
             }
 
             // Pipes
             if(flappyFrame % 180 === 0) { 
-                let topH = Math.random() * (fCanvas.height - fConfigGap - 40) + 20; 
-                flappyPipes.push({ x: fCanvas.width, y: 0, w: 40, h: topH, passed: false });
-                flappyPipes.push({ x: fCanvas.width, y: topH + fConfigGap, w: 40, h: fCanvas.height - (topH + fConfigGap), passed: false });
+                let topH = Math.random() * (fCanvas.height - fConfigGap - 80) + 40; 
+                flappyPipes.push({ x: fCanvas.width, y: 0, w: 50, h: topH, passed: false });
+                flappyPipes.push({ x: fCanvas.width, y: topH + fConfigGap, w: 50, h: fCanvas.height - (topH + fConfigGap) - 40, passed: false });
             }
             flappyFrame++;
 
@@ -904,8 +902,7 @@
                     p.passed = true;
                 }
             }
-            // Remove old
-            if(flappyPipes.length > 0 && flappyPipes[0].x < -50) {
+            if(flappyPipes.length > 0 && flappyPipes[0].x < -60) {
                 flappyPipes.shift(); flappyPipes.shift();
             }
 
@@ -913,22 +910,91 @@
             flappyLoopId = requestAnimationFrame(loopFlappy);
         }
 
-        function drawFlappy() {
-            fCtx.fillStyle = '#0a0a12';
-            fCtx.fillRect(0,0,fCanvas.width, fCanvas.height);
-            
-            fCtx.fillStyle = '#2ecc71';
-            fCtx.shadowBlur = 10; fCtx.shadowColor = "#2ecc71";
-            for(let p of flappyPipes) {
-                fCtx.fillRect(p.x, p.y, p.w, p.h);
-            }
-            fCtx.shadowBlur = 0;
+        // --- NOUVELLES FONCTIONS DE DESSIN ---
 
-            fCtx.fillStyle = '#f1c40f';
-            fCtx.fillRect(flappyBird.x, flappyBird.y, flappyBird.w, flappyBird.h);
-            fCtx.fillStyle = '#000';
-            fCtx.fillRect(flappyBird.x + 12, flappyBird.y + 4, 4, 4);
+        function drawFlappyBackground() {
+            // Sky Gradient
+            const grd = fCtx.createLinearGradient(0, 0, 0, fCanvas.height);
+            grd.addColorStop(0, "#4fc3f7"); // Light blue
+            grd.addColorStop(1, "#2980b9"); // Darker blue
+            fCtx.fillStyle = grd;
+            fCtx.fillRect(0, 0, fCanvas.width, fCanvas.height);
+
+            // Ground
+            fCtx.fillStyle = '#27ae60'; // Grass green
+            fCtx.fillRect(0, fCanvas.height - 40, fCanvas.width, 40);
+            fCtx.fillStyle = '#e67e22'; // Dirt line
+            fCtx.fillRect(0, fCanvas.height - 45, fCanvas.width, 5);
         }
+
+        function drawFlappyPipesStyled(pipes) {
+            const pipeColor = '#2ecc71';
+            const capColor = '#27ae60';
+            const capHeight = 20;
+            const capOverhang = 4;
+
+            for(let p of pipes) {
+                 // Main stem
+                 fCtx.fillStyle = pipeColor;
+                 fCtx.fillRect(p.x, p.y, p.w, p.h);
+
+                 // Cap logic
+                 fCtx.fillStyle = capColor;
+                 if(p.y === 0) {
+                     // Top pipe - cap at bottom
+                     fCtx.fillRect(p.x - capOverhang, p.h - capHeight, p.w + capOverhang*2, capHeight);
+                 } else {
+                     // Bottom pipe - cap at top
+                     fCtx.fillRect(p.x - capOverhang, p.y, p.w + capOverhang*2, capHeight);
+                 }
+            }
+        }
+
+        function drawFlappyBirdStyled(x, y, w, h) {
+            const centerX = x + w/2;
+            const centerY = y + h/2;
+            const radius = w/2;
+
+            // Body (Circle)
+            fCtx.beginPath();
+            fCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            fCtx.fillStyle = '#f1c40f'; // Yellow
+            fCtx.fill();
+            fCtx.strokeStyle = '#f39c12'; // Darker orange outline
+            fCtx.lineWidth = 2;
+            fCtx.stroke();
+
+            // Wing (Ellipse)
+            fCtx.beginPath();
+            fCtx.ellipse(centerX - 5, centerY, radius/1.5, radius/2.5, Math.PI / 4, 0, Math.PI * 2);
+            fCtx.fillStyle = '#f39c12';
+            fCtx.fill();
+
+            // Eye (White circle + black pupil)
+            fCtx.beginPath();
+            fCtx.arc(centerX + radius/2, centerY - radius/4, radius/3, 0, Math.PI*2);
+            fCtx.fillStyle = 'white';
+            fCtx.fill();
+            fCtx.beginPath();
+            fCtx.arc(centerX + radius/1.5, centerY - radius/4, radius/6, 0, Math.PI*2);
+            fCtx.fillStyle = 'black';
+            fCtx.fill();
+
+            // Beak (Triangle)
+            fCtx.beginPath();
+            fCtx.moveTo(centerX + radius - 2, centerY + 2);
+            fCtx.lineTo(centerX + radius + 8, centerY + 6);
+            fCtx.lineTo(centerX + radius - 2, centerY + 10);
+            fCtx.fillStyle = '#e67e22'; // Orange
+            fCtx.fill();
+        }
+
+        function drawFlappy() {
+            drawFlappyBackground();
+            drawFlappyPipesStyled(flappyPipes);
+            drawFlappyBirdStyled(flappyBird.x, flappyBird.y, flappyBird.w, flappyBird.h);
+        }
+        // ------------------------------------
 
         function jumpFlappy() {
             if(fGameState === 'ready') {
