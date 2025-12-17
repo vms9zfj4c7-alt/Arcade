@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate - Mobile Edition (V7)</title>
+    <title>Arcade Ultimate - Mobile Fix (V8)</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -26,16 +26,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start; /* Permet le scroll */
             min-height: 100vh;
             width: 100%;
             user-select: none;
             overflow-x: hidden;
-            touch-action: none; /* Empêche le scroll pendant le jeu */
+            /* CORRECTION SCROLL : On autorise le scroll vertical */
+            overflow-y: auto; 
+            touch-action: pan-y; /* Autorise le scroll vertical au doigt */
+            padding-bottom: 50px; /* Marge pour le bas du téléphone */
             -webkit-tap-highlight-color: transparent;
         }
 
-        h1 { text-align: center; margin-bottom: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); font-size: 2rem; }
+        h1 { text-align: center; margin: 20px 0; letter-spacing: 2px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); font-size: 1.8rem; }
         h2 { color: var(--accent-gold); text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid var(--accent-gold); display: inline-block; padding-bottom: 5px; font-size: 1.5rem; }
         h3 { border-bottom: 1px solid #7f8c8d; padding-bottom: 5px; margin-top: 20px; font-size: 16px; color: #3498db; }
 
@@ -47,10 +50,10 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border: 2px solid #30475e;
             text-align: center;
-            width: 90%; /* Largeur relative */
-            max-width: 500px; /* Max pour PC */
+            width: 90%; 
+            max-width: 500px; 
             animation: fadeIn 0.5s ease-out;
-            margin: 60px auto 20px auto;
+            margin: 40px auto; /* Marge pour ne pas coller aux bords */
             box-sizing: border-box;
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -58,7 +61,7 @@
         button {
             border: none; color: white; padding: 15px 25px; border-radius: 8px; font-size: 18px; cursor: pointer;
             transition: all 0.2s; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; overflow: hidden;
-            margin: 5px 0; touch-action: manipulation;
+            margin: 8px 0; touch-action: manipulation;
         }
         button:hover { transform: translateY(-3px); box-shadow: 0 7px 15px rgba(0,0,0,0.4); filter: brightness(1.1); }
         button:active { transform: translateY(1px); }
@@ -78,13 +81,13 @@
         }
 
         /* HUB */
-        #mainHub { position: relative; border: 2px solid var(--accent-gold); margin-top: 20px; }
+        #mainHub { position: relative; border: 2px solid var(--accent-gold); }
         #vaultBtn { position: absolute; top: 15px; right: 15px; background: none; font-size: 24px; padding: 0; cursor: pointer; opacity: 0.6; transition: opacity 0.3s; box-shadow: none; }
         #vaultBtn:hover { opacity: 1; transform: scale(1.2); }
 
         /* COFFRE FORT */
         #vaultOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        #vaultContent { background-color: var(--vault-color); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; border: 2px solid var(--accent-gold); box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); text-align: center; max-height: 85vh; overflow-y: auto; }
+        #vaultContent { background-color: var(--vault-color); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; border: 2px solid var(--accent-gold); box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); text-align: center; max-height: 80vh; overflow-y: auto; }
         
         #vaultAuth input { font-size: 24px; text-align: center; letter-spacing: 5px; width: 80%; padding: 10px; margin: 15px 0; border-radius: 5px; border: none; background: #ecf0f1; color: #2c3e50;}
         #vaultError { color: #e74c3c; font-weight: bold; display: none; margin-bottom: 10px; animation: shake 0.3s; }
@@ -119,16 +122,17 @@
             display: none; 
             flex-direction: column; 
             align-items: center;
-            justify-content: flex-start; /* Changé pour mobile */
+            justify-content: flex-start;
             width: 100%; 
             min-height: 100vh;
             position: absolute;
             top: 0; left: 0;
             background-color: var(--bg-color);
             padding-top: 60px;
-            padding-bottom: 150px; /* Espace pour les contrôles */
+            /* Espace en bas pour ne pas cacher le jeu avec les controles */
+            padding-bottom: 160px; 
             box-sizing: border-box;
-            overflow-y: auto;
+            z-index: 10;
         }
         
         /* GENERAL CANVAS/GRID - RESPONSIVE */
@@ -139,12 +143,12 @@
             display: none; 
             border-radius: 4px; 
             margin: 0 auto; 
-            /* Responsive Magic */
             max-width: 95vw; 
-            max-height: 70vh;
+            max-height: 65vh;
             height: auto;
             width: auto;
-            object-fit: contain;
+            /* Empêche de scroller en touchant le jeu */
+            touch-action: none; 
         }
 
         .checkbox-container { display: block; margin-bottom: 20px; font-size: 18px; cursor: pointer; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); width: 100%; box-sizing: border-box; }
@@ -157,7 +161,7 @@
         .p1-score { color: #e74c3c; border-bottom: 3px solid #e74c3c; } .p2-score { color: #3498db; border-bottom: 3px solid #3498db; } .p2-score-c4 { color: #f1c40f; border-bottom: 3px solid #f1c40f; }
 
         /* GRIDS & CELLS */
-        #grid, .dynamic-grid { display: grid; gap: 2px; background-color: var(--panel-bg); padding: 5px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; margin: 0 auto; }
+        #grid, .dynamic-grid { display: grid; gap: 2px; background-color: var(--panel-bg); padding: 5px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; margin: 0 auto; touch-action: none; }
         .cell, .ttt-cell, .c4-cell { display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
         
         /* Mine */
@@ -249,7 +253,7 @@
 
         /* --- CONTROLES MOBILES (D-PAD) --- */
         #mobileControls {
-            display: none; /* Caché sur PC */
+            display: none; /* Masqué par défaut */
             position: fixed;
             bottom: 20px;
             left: 50%;
@@ -257,12 +261,9 @@
             width: 220px;
             height: 150px;
             z-index: 9000;
+            pointer-events: auto; /* Force la réception des clics */
         }
         
-        @media (hover: none) and (pointer: coarse) {
-            #mobileControls { display: block; } /* Visible sur mobile */
-        }
-
         .dpad-btn {
             position: absolute;
             width: 60px;
@@ -277,6 +278,7 @@
             user-select: none;
             backdrop-filter: blur(5px);
             touch-action: manipulation;
+            cursor: pointer;
         }
         .dpad-btn:active { background: rgba(241, 196, 15, 0.5); transform: scale(0.95); }
         
@@ -287,7 +289,7 @@
 
         /* Petit bouton action (Jump / Rotate) */
         #actionBtn {
-            display: none;
+            display: none; /* Masqué par défaut */
             position: fixed;
             bottom: 40px;
             right: 20px;
@@ -300,8 +302,10 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            font-size: 14px;
+            pointer-events: auto;
+            touch-action: manipulation;
         }
-        @media (hover: none) and (pointer: coarse) { #actionBtn { display: flex; } }
         #actionBtn:active { background: #e74c3c; }
 
     </style>
@@ -314,7 +318,7 @@
         <div id="btnRight" class="dpad-btn" ontouchstart="simulateKey(39); return false;">▶</div>
         <div id="btnDown" class="dpad-btn" ontouchstart="simulateKey(40); return false;">▼</div>
     </div>
-    <div id="actionBtn" ontouchstart="simulateKey(32); return false;">ACT</div>
+    <div id="actionBtn" ontouchstart="simulateAction(); return false;">ACT</div>
 
     <div id="vaultOverlay">
         <div id="vaultContent">
@@ -587,6 +591,32 @@
             const e = new KeyboardEvent('keydown', { keyCode: code, which: code });
             document.dispatchEvent(e);
         }
+        function simulateAction() {
+            // Space or Enter depending on context
+            if(currentGameMode === 'flappy' && fGameState === 'over') simulateKey(13); // Enter
+            else simulateKey(32); // Space
+        }
+
+        // CONTROL VISIBILITY MANAGER
+        function showMobileControls(type) {
+            // Check if mobile (simple check)
+            if(!window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
+
+            document.getElementById('mobileControls').style.display = 'none';
+            document.getElementById('actionBtn').style.display = 'none';
+
+            if(type === 'dpad') {
+                document.getElementById('mobileControls').style.display = 'block';
+                document.getElementById('actionBtn').style.display = 'flex'; // For rotation/speed
+            } else if (type === 'action') {
+                document.getElementById('actionBtn').style.display = 'flex';
+            }
+        }
+
+        function hideMobileControls() {
+            document.getElementById('mobileControls').style.display = 'none';
+            document.getElementById('actionBtn').style.display = 'none';
+        }
 
         // === GESTION HACK AVEC CODE PIN ===
         let tttSize=3, tttWinLen=3, tttStart='X';
@@ -703,6 +733,7 @@
 
         function backToHub() { 
             stopSnake(); stopMine(); stopTetris(); stopPong(); stopTron(); stopFlappy();
+            hideMobileControls(); // Cache les boutons
             snakeRoot.style.display='none'; 
             mineRoot.style.display='none'; 
             tttRoot.style.display='none'; 
@@ -747,6 +778,7 @@
             document.getElementById('flappyOverlay').style.display = 'none'; // Hide game over
             fCanvas.style.display = 'block';
             currentGameMode = 'flappy';
+            showMobileControls('action'); // Show only action button
             
             // Reset Vars
             flappyBird = { x: 50, y: 300, w: 20, h: 20, velocity: 0 };
@@ -1019,6 +1051,7 @@
             document.getElementById('pongGameContainer').style.display = 'flex';
             pCanvas.style.display = 'block'; 
             currentGameMode = 'pong';
+            // No D-PAD for Pong (Touch Move)
 
             pCanvas.width = pConfigW;
             pCanvas.height = pConfigH;
@@ -1157,6 +1190,7 @@
             document.getElementById('tronGameContainer').style.display = 'flex';
             trCanvas.style.display = 'block';
             currentGameMode = 'tron';
+            showMobileControls('dpad'); // D-PAD for Tron
             
             if(mode === 'pvp') {
                 tronIsCPU = false;
@@ -1459,6 +1493,7 @@
             document.getElementById('tetrisGameContainer').style.display = 'flex';
             tCanvas.style.display = 'block'; 
             currentGameMode = 'tetris';
+            showMobileControls('dpad'); // D-PAD for Tetris
             
             tBlockSize = 30;
             tCanvas.width = tCols * tBlockSize;
@@ -1672,12 +1707,12 @@
         // === SNAKE LOGIC ===
         const sCanvas=document.getElementById("snakeCanvas"), sCtx=sCanvas.getContext("2d"), sScoreEl=document.getElementById("snakeScoreVal");
         let sInterval, sTileCount=20, sGridSize=20, sHeadX=10, sHeadY=10, sAppleX=5, sAppleY=5, sVelX=0, sVelY=0, sTrail=[], sTail=5, sScore=0, sWallsSolid=false;
-        function startSnakeGame(speed, mapSize) { sWallsSolid=document.getElementById('snakeWallCheck').checked; document.getElementById('snakeMenu').style.display='none'; sCanvas.style.display='block'; document.getElementById('snakeScoreBoard').style.display='block'; currentGameMode='snake'; sTileCount=mapSize; sGridSize=sCanvas.width/sTileCount; resetSnakeVars(); sInterval=setInterval(loopSnake, speed); }
+        function startSnakeGame(speed, mapSize) { sWallsSolid=document.getElementById('snakeWallCheck').checked; document.getElementById('snakeMenu').style.display='none'; sCanvas.style.display='block'; document.getElementById('snakeScoreBoard').style.display='block'; currentGameMode='snake'; sTileCount=mapSize; sGridSize=sCanvas.width/sTileCount; resetSnakeVars(); sInterval=setInterval(loopSnake, speed); showMobileControls('dpad'); }
         function stopSnake() { clearInterval(sInterval); }
         function resetSnakeVars() { sHeadX=Math.floor(sTileCount/2); sHeadY=Math.floor(sTileCount/2); sTrail=[]; sTail=5; sScore=0; sVelX=0; sVelY=0; sScoreEl.innerText=sScore; placeSnakeApple(); }
         function loopSnake() { sHeadX+=sVelX; sHeadY+=sVelY; if(sWallsSolid){if(sHeadX<0||sHeadX>=sTileCount||sHeadY<0||sHeadY>=sTileCount){snakeGameOver();return;}}else{if(sHeadX<0)sHeadX=sTileCount-1;if(sHeadX>=sTileCount)sHeadX=0;if(sHeadY<0)sHeadY=sTileCount-1;if(sHeadY>=sTileCount)sHeadY=0;} sCtx.fillStyle="black"; sCtx.fillRect(0,0,sCanvas.width,sCanvas.height); sCtx.fillStyle="red"; sCtx.fillRect(sAppleX*sGridSize,sAppleY*sGridSize,sGridSize-1,sGridSize-1); sCtx.fillStyle="lime"; for(let i=0;i<sTrail.length;i++){sCtx.fillRect(sTrail[i].x*sGridSize,sTrail[i].y*sGridSize,sGridSize-1,sGridSize-1);if(sTrail[i].x===sHeadX&&sTrail[i].y===sHeadY&&sTail>5){snakeGameOver();return;}} sTrail.push({x:sHeadX,y:sHeadY}); while(sTrail.length>sTail)sTrail.shift(); if(sAppleX===sHeadX&&sAppleY===sHeadY){sTail++;sScore++;sScoreEl.innerText=sScore;placeSnakeApple();} }
         function placeSnakeApple() { sAppleX=Math.floor(Math.random()*sTileCount); sAppleY=Math.floor(Math.random()*sTileCount); }
-        function snakeGameOver() { stopSnake(); alert("Perdu ! Score Snake : " + sScore); document.getElementById('snakeMenu').style.display='block'; sCanvas.style.display='none'; document.getElementById('snakeScoreBoard').style.display='none'; }
+        function snakeGameOver() { stopSnake(); alert("Perdu ! Score Snake : " + sScore); document.getElementById('snakeMenu').style.display='block'; sCanvas.style.display='none'; document.getElementById('snakeScoreBoard').style.display='none'; hideMobileControls(); }
 
         // === MINESWEEPER LOGIC ===
         const mGrid = document.getElementById('grid'), mFlagsEl = document.getElementById('flagsLeft'), mTimerEl = document.getElementById('mineTimer');
@@ -1736,7 +1771,6 @@
         function checkBoardFull(b) { for(let r=0;r<b.length;r++)for(let c=0;c<b[0].length;c++)if(b[r][c]==='')return false; return true; }
         function cpuMoveTTT() { if(!tttGameActive) return; let move = findBestMoveGeneric(tttBoard, tttSize, tttSize, tttWinLen, 'O', 'X'); tttBoard[move.r][move.c] = 'O'; renderTTT(); const win = checkGenericWin(tttBoard, tttSize, tttSize, tttWinLen, 'O'); if(win) { tttStatus.innerText = "O a gagné !"; tttGameActive = false; tttScoreO++; updateTTTScoreBoard(); drawGenericLine(win, tttGrid, 60, 5); return; } if(checkBoardFull(tttBoard)) { tttStatus.innerText = "Match Nul"; tttGameActive = false; return; } tttCurrentPlayer = 'X'; tttStatus.innerText = "Tour de : X"; }
         function findBestMoveGeneric(board, rows, cols, winLen, me, opp) { for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) { if(board[r][c] === '') { board[r][c] = me; if(checkGenericWin(board, rows, cols, winLen, me)) { board[r][c] = ''; return {r,c}; } board[r][c] = ''; } } for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) { if(board[r][c] === '') { board[r][c] = opp; if(checkGenericWin(board, rows, cols, winLen, opp)) { board[r][c] = ''; return {r,c}; } board[r][c] = ''; } } let available = []; for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) if(board[r][c]==='') available.push({r,c}); return available[Math.floor(Math.random()*available.length)]; }
-
         // === CONNECT 4 LOGIC ===
         const c4Grid = document.getElementById('c4Grid'), c4Status = document.getElementById('c4Status'), c4ScoreRedEl = document.getElementById('c4ScoreRed'), c4ScoreYellowEl = document.getElementById('c4ScoreYellow');
         let c4Board = [], c4Player = 'R', c4Active = true, c4Mode = 'pvp', c4ScoreR = 0, c4ScoreY = 0;
