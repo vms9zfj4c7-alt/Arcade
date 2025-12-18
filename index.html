@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate - V15 Leaderboard</title>
+    <title>Arcade Ultimate - V16 Fix</title>
     <style>
         /* --- DESIGN GLOBAL --- */
         :root {
@@ -104,7 +104,21 @@
 
         /* MODAL GÉNÉRAL (LOGIN / LEADERBOARD / VAULT) */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background-color: var(--vault-color); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; border: 2px solid var(--accent-gold); box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); text-align: center; max-height: 80vh; overflow-y: auto; }
+        
+        /* FIX SCROLL MOBILE : overscroll-behavior */
+        .modal-content { 
+            background-color: var(--vault-color); 
+            padding: 20px; 
+            border-radius: 15px; 
+            width: 90%; 
+            max-width: 400px; 
+            border: 2px solid var(--accent-gold); 
+            box-shadow: 0 0 30px rgba(241, 196, 15, 0.3); 
+            text-align: center; 
+            max-height: 80vh; 
+            overflow-y: auto; 
+            overscroll-behavior: contain; /* Empêche le scroll du body */
+        }
 
         /* LOGIN */
         #loginInput { font-size: 20px; text-align: center; padding: 10px; margin: 15px 0; border-radius: 5px; width: 80%; border: none; }
@@ -442,7 +456,7 @@
     </div>
 
     <div id="vaultOverlay" class="modal-overlay">
-        <div id="vaultContent">
+        <div class="modal-content">
             <div id="vaultAuth">
                 <h2>🔒 SÉCURITÉ</h2>
                 <p>Code PIN (1234):</p>
@@ -752,8 +766,8 @@
             
             // Tri (Décroissant pour la plupart, sauf peut-être Chrono Démineur ?)
             // Ici on assume plus c'est haut mieux c'est. Pour Démineur (temps), on inversera la logique dans le jeu
-            if(gameName === 'mine') {
-                allScores[gameName].sort((a,b) => a.score - b.score); // Petit temps = mieux
+            if(gameName === 'mine' || gameName === 'mm') {
+                allScores[gameName].sort((a,b) => a.score - b.score); // Petit score = mieux (temps ou essais)
             } else {
                 allScores[gameName].sort((a,b) => b.score - a.score); // Grand score = mieux
             }
@@ -764,12 +778,19 @@
             localStorage.setItem('arcadeLeaderboard', JSON.stringify(allScores));
         }
 
+        // === HELPERS MOBILE SCROLL FIX ===
+        function toggleBodyScroll(lock) {
+            document.body.style.overflow = lock ? 'hidden' : '';
+        }
+
         function openLeaderboard() {
+            toggleBodyScroll(true);
             document.getElementById('leaderboardOverlay').style.display = 'flex';
             generateLeaderboardTabs();
         }
 
         function closeLeaderboard() {
+            toggleBodyScroll(false);
             document.getElementById('leaderboardOverlay').style.display = 'none';
         }
 
@@ -780,7 +801,8 @@
                 {id:'snake', name:'Snake'},
                 {id:'mine', name:'Démineur'},
                 {id:'tron', name:'Tron'},
-                {id:'pong', name:'Pong'}
+                {id:'pong', name:'Pong'},
+                {id:'mm', name:'Mastermind'}
             ];
             
             const tabsContainer = document.getElementById('lbTabs');
@@ -821,12 +843,16 @@
                 if(idx===1) medal = "🥈 ";
                 if(idx===2) medal = "🥉 ";
                 
-                tr.innerHTML = `<td>${medal}#${idx+1}</td><td>${s.name}</td><td>${s.score} ${gameId === 'mine' ? 's' : ''}</td>`;
+                let suffix = "";
+                if(gameId === 'mine') suffix = "s";
+                if(gameId === 'mm') suffix = " pts";
+
+                tr.innerHTML = `<td>${medal}#${idx+1}</td><td>${s.name}</td><td>${s.score} ${suffix}</td>`;
                 tbody.appendChild(tr);
             });
         }
 
-        // === HELPERS MOBILE ===
+        // === HELPERS MOBILE CONTROLS ===
         function simulateKey(code) {
             const e = new KeyboardEvent('keydown', { keyCode: code, which: code });
             document.dispatchEvent(e);
@@ -872,6 +898,7 @@
         document.getElementById("vaultPin").addEventListener("keypress", function(e) { if (e.key === "Enter") { e.preventDefault(); checkVaultCode(); }});
 
         function openVault() { 
+            toggleBodyScroll(true);
             document.getElementById('vaultOverlay').style.display='flex'; 
             document.getElementById('vaultAuth').style.display='block';
             document.getElementById('vaultSettings').style.display='none';
@@ -879,7 +906,10 @@
             document.getElementById('vaultError').style.display='none';
             document.getElementById('vaultPin').focus();
         }
-        function closeVault() { document.getElementById('vaultOverlay').style.display='none'; }
+        function closeVault() { 
+            toggleBodyScroll(false);
+            document.getElementById('vaultOverlay').style.display='none'; 
+        }
         
         function checkVaultCode() { 
             if(document.getElementById('vaultPin').value==="1234"){
@@ -1931,7 +1961,196 @@
             c4Status.innerText = "JAUNE GAGNE !"; c4Active = false; c4ScoreY++; updateC4Score(); 
             drawGenericLine(win, c4Grid, 4); return; 
         } if (checkBoardFullC4(c4Board)) { c4Status.innerText = "MATCH NUL"; c4Active = false; return; } c4Player = 'R'; c4Status.innerText = "Tour de : ROUGE"; c4Status.style.color = "#e74c3c"; }
+
+        // ============================
+        // === MASTERMIND LOGIC ===
+        // ============================
+        const mmColors = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#ecf0f1']; // Red, Blue, Green, Yellow, Purple, White
+        let mmSecret = [];
+        let mmCurrentRow = 0;
+        let mmCurrentGuess = [-1, -1, -1, -1];
+        let mmGameActive = true;
+
+        function startMastermind() {
+            document.getElementById('mmMenu').style.display = 'none';
+            document.getElementById('mmGameContainer').style.display = 'flex';
+            currentGameMode = 'mastermind';
+
+            // Générer code secret
+            mmSecret = [];
+            for(let i=0; i<4; i++) mmSecret.push(Math.floor(Math.random() * mmColors.length));
+            
+            // Reset variables
+            mmCurrentRow = 0;
+            mmCurrentGuess = [-1, -1, -1, -1];
+            mmGameActive = true;
+
+            // Construire le plateau
+            renderMastermindBoard();
+            renderMastermindSelector();
+        }
+
+        function renderMastermindBoard() {
+            const board = document.getElementById('mmBoard');
+            board.innerHTML = '';
+
+            // On crée 10 lignes (par exemple)
+            for(let i=0; i<10; i++) {
+                const row = document.createElement('div');
+                row.className = 'mm-row';
+                
+                // Feedback slots (les petits points noirs/blancs)
+                const feedback = document.createElement('div');
+                feedback.className = 'mm-feedback';
+                feedback.id = `mm-feed-${i}`;
+                // 4 petits trous feedback
+                for(let k=0; k<4; k++) {
+                    const peg = document.createElement('div');
+                    peg.className = 'mm-peg';
+                    feedback.appendChild(peg);
+                }
+                row.appendChild(feedback);
+
+                // Main holes (les trous de couleur)
+                const holes = document.createElement('div');
+                holes.className = 'mm-holes';
+                
+                for(let j=0; j<4; j++) {
+                    const hole = document.createElement('div');
+                    hole.className = 'mm-hole';
+                    hole.id = `mm-hole-${i}-${j}`;
+                    
+                    // Si c'est la ligne active et qu'on a choisi une couleur
+                    if(i === mmCurrentRow && mmCurrentGuess[j] !== -1) {
+                        hole.style.backgroundColor = mmColors[mmCurrentGuess[j]];
+                        hole.style.border = "2px solid white";
+                    } 
+                    
+                    // Interaction: Clic sur un trou de la ligne active pour le vider
+                    if(i === mmCurrentRow) {
+                        hole.onclick = () => {
+                            if(!mmGameActive) return;
+                            mmCurrentGuess[j] = -1;
+                            updateMastermindVisuals();
+                        };
+                    }
+                    holes.appendChild(hole);
+                }
+                row.appendChild(holes);
+                board.appendChild(row); 
+            }
+        }
+
+        // Fonction pour juste mettre à jour la ligne active sans tout casser
+        function updateMastermindVisuals() {
+            for(let j=0; j<4; j++) {
+                const hole = document.getElementById(`mm-hole-${mmCurrentRow}-${j}`);
+                if(hole) {
+                    if(mmCurrentGuess[j] !== -1) {
+                        hole.style.backgroundColor = mmColors[mmCurrentGuess[j]];
+                        hole.style.boxShadow = `0 0 10px ${mmColors[mmCurrentGuess[j]]}`;
+                    } else {
+                        hole.style.backgroundColor = '#1a1a2e';
+                        hole.style.boxShadow = 'none';
+                    }
+                }
+            }
+        }
+
+        function renderMastermindSelector() {
+            const sel = document.getElementById('mmSelector');
+            sel.innerHTML = '';
+            mmColors.forEach((color, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'mm-btn-color';
+                btn.style.backgroundColor = color;
+                btn.onclick = () => selectMmColor(idx);
+                sel.appendChild(btn);
+            });
+        }
+
+        function selectMmColor(colorIndex) {
+            if(!mmGameActive) return;
+            // Trouver le premier trou vide
+            const emptySlot = mmCurrentGuess.indexOf(-1);
+            if(emptySlot !== -1) {
+                mmCurrentGuess[emptySlot] = colorIndex;
+                updateMastermindVisuals();
+            }
+        }
+
+        function submitMmGuess() {
+            if(!mmGameActive) return;
+            if(mmCurrentGuess.includes(-1)) {
+                alert("Remplissez les 4 cases !");
+                return;
+            }
+
+            // Calculer le résultat
+            let tempSecret = [...mmSecret];
+            let tempGuess = [...mmCurrentGuess];
+            let black = 0;
+            let white = 0;
+
+            // 1. Check Black (Bonne couleur, bonne place)
+            for(let i=0; i<4; i++) {
+                if(tempGuess[i] === tempSecret[i]) {
+                    black++;
+                    tempGuess[i] = -99; // Marqué comme traité
+                    tempSecret[i] = -99;
+                }
+            }
+
+            // 2. Check White (Bonne couleur, mauvaise place)
+            for(let i=0; i<4; i++) {
+                if(tempGuess[i] !== -99) { // Si pas déjà 'black'
+                    const foundIndex = tempSecret.indexOf(tempGuess[i]);
+                    if(foundIndex !== -1 && tempSecret[foundIndex] !== -99) {
+                        white++;
+                        tempSecret[foundIndex] = -99; // Marqué pour ne pas être compté deux fois
+                    }
+                }
+            }
+
+            // Afficher feedback
+            const feedBox = document.getElementById(`mm-feed-${mmCurrentRow}`);
+            feedBox.innerHTML = '';
+            for(let b=0; b<black; b++) {
+                const p = document.createElement('div'); p.className = 'mm-peg black'; feedBox.appendChild(p);
+            }
+            for(let w=0; w<white; w++) {
+                const p = document.createElement('div'); p.className = 'mm-peg white'; feedBox.appendChild(p);
+            }
+
+            // Check Win/Loss
+            if(black === 4) {
+                mmGameActive = false;
+                alert("BRAVO ! Code trouvé !");
+                saveHighScore('mm', 11 - (mmCurrentRow + 1)); 
+            } else {
+                mmCurrentRow++;
+                if(mmCurrentRow >= 10) {
+                    mmGameActive = false;
+                    alert("PERDU ! C'était fini. Réessaie !");
+                } else {
+                    mmCurrentGuess = [-1, -1, -1, -1];
+                }
+            }
+        }
+
+        function hackMastermind() {
+            if(currentGameMode !== 'mastermind' || !mmGameActive) {
+                alert("Lance d'abord une partie de Mastermind !");
+                return;
+            }
+            alert("Hack Console : La couleur en position 1 est " + getColorName(mmSecret[0]));
+        }
+
+        function getColorName(idx) {
+            const names = ['Rouge', 'Bleu', 'Vert', 'Jaune', 'Violet', 'Blanc'];
+            return names[idx] || 'Inconnu';
+        }
+
     </script>
 </body>
 </html>
-
