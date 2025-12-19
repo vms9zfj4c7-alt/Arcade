@@ -3,19 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Arcade Ultimate</title>
+    <title>Arcade Ultimate - V17 Simon</title>
     
-    <link rel="icon" href="arcade_icon.jpg">
-
-<link rel="apple-touch-icon" href="arcade_icon_dark.png">
-
-<meta property="og:title" content="Arcade Ultimate">
-<meta property="og:description" content="Joue à Snake, Tetris, Pong, Tron et Mastermind sur ton navigateur !">
-<meta property="og:type" content="website">
-
-<meta property="og:image" content="[https://vms9zfj4c7-alt.github.io/Arcade/arcade_icon.jpg](https://vms9zfj4c7-alt.github.io/Arcade/arcade_icon.jpg)">
-<meta property="og:url" content="[https://vms9zfj4c7-alt.github.io/Arcade/](https://vms9zfj4c7-alt.github.io/Arcade/)">
-    <style>
+    <style> 
         /* --- DESIGN GLOBAL --- */
         :root {
             --bg-color: #0a0a12;
@@ -25,8 +15,13 @@
             --vault-color: #2c3e50;
             --tron-cyan: #00fff2;
             --tron-orange: #ff6b6b;
-            --flappy-yellow: #f1c40f;
-            --flappy-green: #2ecc71;
+            /* Simon Colors */
+            --simon-green: #2ecc71;
+            --simon-red: #e74c3c;
+            --simon-yellow: #f1c40f;
+            --simon-blue: #3498db;
+            --simon-purple: #9b59b6;
+            --simon-orange: #e67e22;
         }
 
         body {
@@ -116,7 +111,6 @@
         /* MODAL GÉNÉRAL (LOGIN / LEADERBOARD / VAULT) */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         
-        /* FIX SCROLL MOBILE : overscroll-behavior */
         .modal-content { 
             background-color: var(--vault-color); 
             padding: 20px; 
@@ -142,9 +136,9 @@
         table.lb-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         table.lb-table th { background: #16213e; padding: 8px; color: var(--accent-gold); }
         table.lb-table td { padding: 8px; border-bottom: 1px solid #7f8c8d; }
-        table.lb-table tr:nth-child(1) td { color: #f1c40f; font-weight: bold; font-size: 1.2em; } /* 1er Or */
-        table.lb-table tr:nth-child(2) td { color: #bdc3c7; font-weight: bold; } /* 2eme Argent */
-        table.lb-table tr:nth-child(3) td { color: #e67e22; font-weight: bold; } /* 3eme Bronze */
+        table.lb-table tr:nth-child(1) td { color: #f1c40f; font-weight: bold; font-size: 1.2em; } 
+        table.lb-table tr:nth-child(2) td { color: #bdc3c7; font-weight: bold; } 
+        table.lb-table tr:nth-child(3) td { color: #e67e22; font-weight: bold; } 
 
         /* COFFRE FORT */
         #vaultAuth input { font-size: 24px; text-align: center; letter-spacing: 5px; width: 80%; padding: 10px; margin: 15px 0; border-radius: 5px; border: none; background: #ecf0f1; color: #2c3e50;}
@@ -166,7 +160,8 @@
         .btn-pong-hub { background: linear-gradient(45deg, #e17055, #d63031); }
         .btn-tron-hub { background: linear-gradient(45deg, #00cec9, #00fff2); box-shadow: 0 0 15px rgba(0, 255, 242, 0.4); } 
         .btn-mm-hub { background: linear-gradient(45deg, #fd79a8, #e84393); } 
-        .btn-flappy-hub { background: linear-gradient(45deg, #f1c40f, #e67e22); box-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
+        .btn-simon-hub { background: linear-gradient(45deg, #e67e22, #f39c12); box-shadow: 0 0 15px rgba(243, 156, 18, 0.3); }
+
         .btn-custom { background-color: #8e44ad; border: 1px dashed var(--accent-gold); color: var(--accent-gold); width: 100%; } 
 
         .level-btn { display: block; width: 100%; margin: 10px 0; padding: 15px; font-size: 18px; }
@@ -176,7 +171,7 @@
         .btn-hard { background-color: #e74c3c; }
 
         /* CONTAINERS JEUX */
-        #snakeRoot, #minesweeperRoot, #tictactoeRoot, #connect4Root, #tetrisRoot, #pongRoot, #tronRoot, #mmRoot, #flappyRoot { 
+        #snakeRoot, #minesweeperRoot, #tictactoeRoot, #connect4Root, #tetrisRoot, #pongRoot, #tronRoot, #mmRoot, #simonRoot { 
             display: none; 
             flex-direction: column; 
             align-items: center;
@@ -327,25 +322,49 @@
         .p1-tron { color: var(--tron-cyan); } 
         .p2-tron { color: var(--tron-orange); } 
 
-        /* FLAPPY UI */
-        #flappyCanvas { background-color: #000; width: 90%; max-width: 400px; height: auto; aspect-ratio: 2/3; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        #flappyScoreBoard { font-family: 'Courier New', monospace; font-size: 30px; font-weight: bold; margin-bottom: 10px; color: var(--flappy-yellow); }
-        #flappyOverlay {
-            display: none;
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(22, 33, 62, 0.95);
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid var(--flappy-yellow);
-            text-align: center;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            z-index: 50;
-            width: 80%;
+        /* SIMON UI */
+        .simon-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            background: #2c3e50;
+            border-radius: 50%;
+            border: 4px solid #7f8c8d;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+            width: 90vw;
+            max-width: 350px;
+            aspect-ratio: 1/1;
+            margin: 0 auto;
+            position: relative;
         }
-        #flappyOverlay h2 { margin-top: 0; color: #e74c3c; font-size: 24px; }
-        #flappyOverlay p { font-size: 18px; font-weight: bold; margin: 15px 0; }
+        .simon-btn {
+            border-radius: 20px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.1s;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            border: 2px solid rgba(0,0,0,0.2);
+        }
+        .simon-btn:active, .simon-btn.active { opacity: 1; transform: scale(0.95); box-shadow: 0 0 20px white; border-color: white; }
+        
+        .sb-green { background-color: var(--simon-green); border-top-left-radius: 100%; }
+        .sb-red { background-color: var(--simon-red); border-top-right-radius: 100%; }
+        .sb-yellow { background-color: var(--simon-yellow); border-bottom-left-radius: 100%; }
+        .sb-blue { background-color: var(--simon-blue); border-bottom-right-radius: 100%; }
+        
+        /* Pour le mode 6 couleurs */
+        .simon-board.six-colors {
+            border-radius: 20px;
+            grid-template-columns: 1fr 1fr;
+            aspect-ratio: auto;
+        }
+        .simon-board.six-colors .simon-btn { border-radius: 15px; aspect-ratio: 1/1; }
+        .sb-purple { background-color: var(--simon-purple); }
+        .sb-orange { background-color: var(--simon-orange); }
+
+        #simonStatus { font-size: 24px; font-weight: bold; margin: 20px 0; min-height: 30px; text-transform: uppercase; letter-spacing: 2px; }
+        #simonScoreBoard { font-family: 'Courier New', monospace; font-size: 30px; font-weight: bold; color: var(--accent-gold); margin-bottom: 20px; }
 
         /* MASTERMIND UI */
         .mm-board { background-color: #2d3436; padding: 10px; border-radius: 10px; border: 2px solid #636e72; width: 95%; max-width: 350px; box-sizing: border-box; }
@@ -456,11 +475,11 @@
         <div class="modal-content">
             <h2>🏆 CLASSEMENT LOCAL</h2>
             <div class="lb-tabs" id="lbTabs">
-                </div>
+            </div>
             <table class="lb-table">
                 <thead><tr><th>Rang</th><th>Joueur</th><th>Score</th></tr></thead>
                 <tbody id="lbBody">
-                    </tbody>
+                </tbody>
             </table>
             <button style="width:100%; background:#95a5a6; margin-top:20px;" onclick="closeLeaderboard()">Fermer</button>
         </div>
@@ -480,9 +499,9 @@
             <div id="vaultSettings">
                 <h2 style="text-align: center;">⚙️ HACK CONSOLE</h2>
                 
-                <h3>🐦 Flappy Bird</h3>
-                <div class="vault-group"><label>Gravité (0.25)</label><input type="number" id="vFlappyGrav" value="0.25" step="0.05"></div>
-                <div class="vault-group"><label>Espace Tuyaux</label><input type="number" id="vFlappyGap" value="150" min="80" max="300"></div>
+                <h3>🧠 Simon</h3>
+                <div class="vault-group"><label>Couleurs</label><input type="number" id="vSimonColors" value="4" min="4" max="6"></div>
+                <div class="vault-group"><label>Vitesse Base (ms)</label><input type="number" id="vSimonSpeed" value="800" min="200" max="1500"></div>
 
                 <h3>🏎️ Tron</h3>
                 <div class="vault-group"><label>Vitesse</label><input type="number" id="vTronSpeed" value="80" min="20" max="200"></div>
@@ -537,7 +556,7 @@
         
         <h1>🎮 ARCADE ZONE</h1>
         <p>Sélectionnez votre jeu :</p>
-        <button class="btn-hub btn-flappy-hub" onclick="loadFlappySystem()">🐦 FLAPPY BIRD</button>
+        <button class="btn-hub btn-simon-hub" onclick="loadSimonSystem()">🧠 SIMON</button>
         <button class="btn-hub btn-tetris-hub" onclick="loadTetrisSystem()">🧱 TETRIS</button>
         <button class="btn-hub btn-pong-hub" onclick="loadPongSystem()">🏓 PONG</button>
         <button class="btn-hub btn-tron-hub" onclick="loadTronSystem()">🏎️ TRON</button>
@@ -548,25 +567,22 @@
         <button class="btn-hub btn-c4-hub" onclick="loadConnect4System()">🔴🟡 PUISSANCE 4</button>
     </div>
 
-    <div id="flappyRoot">
+    <div id="simonRoot">
         <button class="back-to-hub" onclick="backToHub()">🏠 Retour</button>
-        <div id="flappyMenu" class="game-menu-card">
-            <h2>🐦 FLAPPY BIRD</h2>
-            <p>Espace / Clic pour voler</p>
-            <button class="level-btn btn-easy" onclick="startFlappy()">JOUER</button>
+        <div id="simonMenu" class="game-menu-card">
+            <h2>🧠 SIMON</h2>
+            <p>Mémorise la séquence !</p>
+            <button class="level-btn btn-easy" onclick="startSimon('easy')">Lent</button>
+            <button class="level-btn btn-medium" onclick="startSimon('medium')">Normal</button>
+            <button class="level-btn btn-hard" onclick="startSimon('hard')">Rapide</button>
             <p>Hacking :</p>
             <button class="level-btn btn-custom" onclick="openVault()">🔑 Config Coffre</button>
         </div>
-        <div id="flappyGameContainer" class="game-inner-container">
-            <div id="flappyScoreBoard">Score: <span id="fScore">0</span></div>
-            <canvas id="flappyCanvas" width="400" height="600"></canvas>
-            
-            <div id="flappyOverlay">
-                <h2>GAME OVER</h2>
-                <p>Score Final : <span id="fFinalScore" style="color: #f1c40f;">0</span></p>
-                <button class="level-btn btn-easy" onclick="startFlappy()">🔄 Rejouer (Entrée)</button>
-                <button class="level-btn btn-hard" onclick="backToHub()">🏠 Quitter</button>
-            </div>
+        <div id="simonGameContainer" class="game-inner-container">
+            <div id="simonScoreBoard">Score: <span id="simonScore">0</span></div>
+            <div id="simonStatus">Prêt ?</div>
+            <div id="simonBoard" class="simon-board">
+                </div>
         </div>
     </div>
 
@@ -616,9 +632,9 @@
         </div>
         <div id="mmGameContainer" class="game-inner-container" style="display:none;">
             <div class="mm-board" id="mmBoard">
-                </div>
+            </div>
             <div class="mm-selector" id="mmSelector">
-                </div>
+            </div>
             <button style="margin-top:15px; width: auto; background-color: #2ecc71;" onclick="submitMmGuess()">VALIDER LIGNE</button>
         </div>
     </div>
@@ -767,7 +783,7 @@
         }
 
         // --- SYSTÈME DE CLASSEMENT ---
-        // Structure de données : { 'flappy': [{name:'Toto', score:10}, ...], 'snake': ... }
+        // Structure de données : { 'simon': [{name:'Toto', score:10}, ...], 'snake': ... }
         function saveHighScore(gameName, score) {
             let allScores = JSON.parse(localStorage.getItem('arcadeLeaderboard')) || {};
             if(!allScores[gameName]) allScores[gameName] = [];
@@ -776,7 +792,6 @@
             allScores[gameName].push({ name: currentUser, score: score, date: new Date().toLocaleDateString() });
             
             // Tri (Décroissant pour la plupart, sauf peut-être Chrono Démineur ?)
-            // Ici on assume plus c'est haut mieux c'est. Pour Démineur (temps), on inversera la logique dans le jeu
             if(gameName === 'mine' || gameName === 'mm') {
                 allScores[gameName].sort((a,b) => a.score - b.score); // Petit score = mieux (temps ou essais)
             } else {
@@ -807,7 +822,7 @@
 
         function generateLeaderboardTabs() {
             const games = [
-                {id:'flappy', name:'Flappy'},
+                {id:'simon', name:'Simon'},
                 {id:'tetris', name:'Tetris'},
                 {id:'snake', name:'Snake'},
                 {id:'mine', name:'Démineur'},
@@ -870,8 +885,7 @@
         }
         function simulateAction() {
             // Space or Enter depending on context
-            if(currentGameMode === 'flappy' && fGameState === 'over') simulateKey(13); // Enter
-            else simulateKey(32); // Space
+            simulateKey(32); // Space
         }
 
         // CONTROL VISIBILITY MANAGER
@@ -902,9 +916,9 @@
         let pConfigSpeed=5, pConfigPad=100; 
         let pConfigW=700, pConfigH=500; 
         let tronConfigSpeed = 80, tronConfigWall = false, tronMaxTrail = 50;
-        // Flappy Hack
-        let fConfigGrav = 0.25;
-        let fConfigGap = 150;
+        // Simon Hack
+        let sConfigColors = 4;
+        let sConfigSpeed = 800; // Base speed
 
         document.getElementById("vaultPin").addEventListener("keypress", function(e) { if (e.key === "Enter") { e.preventDefault(); checkVaultCode(); }});
 
@@ -950,8 +964,9 @@
             tronMaxTrail = parseInt(document.getElementById('vTronLen').value) || 50;
             tronConfigWall = document.getElementById('vTronWall').checked;
 
-            fConfigGrav = parseFloat(document.getElementById('vFlappyGrav').value) || 0.25;
-            fConfigGap = parseInt(document.getElementById('vFlappyGap').value) || 150;
+            sConfigColors = parseInt(document.getElementById('vSimonColors').value) || 4;
+            if(sConfigColors < 4) sConfigColors = 4; if(sConfigColors > 6) sConfigColors = 6;
+            sConfigSpeed = parseInt(document.getElementById('vSimonSpeed').value) || 800;
 
             closeVault(); alert("✅ Config Sauvegardée !");
         }
@@ -963,7 +978,7 @@
             tConfigSpeed=500; tConfigCols=10; tConfigRows=20;
             pConfigSpeed=5; pConfigPad=100; pConfigW=700; pConfigH=500;
             tronConfigSpeed=80; tronMaxTrail=50; tronConfigWall=false;
-            fConfigGrav=0.25; fConfigGap=150;
+            sConfigColors=4; sConfigSpeed=800;
 
             // Inputs
             document.getElementById('vPongSpeed').value = 5;
@@ -985,8 +1000,8 @@
             document.getElementById('vTronSpeed').value = 80;
             document.getElementById('vTronLen').value = 50;
             document.getElementById('vTronWall').checked = false;
-            document.getElementById('vFlappyGrav').value = 0.25;
-            document.getElementById('vFlappyGap').value = 150;
+            document.getElementById('vSimonColors').value = 4;
+            document.getElementById('vSimonSpeed').value = 800;
 
             alert("🔄 Paramètres réinitialisés !");
         }
@@ -1008,12 +1023,15 @@
         const pongRoot=document.getElementById('pongRoot');
         const tronRoot=document.getElementById('tronRoot');
         const mmRoot=document.getElementById('mmRoot');
-        const flappyRoot=document.getElementById('flappyRoot');
+        const simonRoot=document.getElementById('simonRoot');
         
         let currentGameMode = null; 
 
         function backToHub() { 
-            stopSnake(); stopMine(); stopTetris(); stopPong(); stopTron(); stopFlappy();
+            stopSnake(); stopMine(); stopTetris(); stopPong(); stopTron();
+            // Reset Simon
+            simonActive = false;
+            
             hideMobileControls(); // Cache les boutons
             snakeRoot.style.display='none'; 
             mineRoot.style.display='none'; 
@@ -1023,7 +1041,7 @@
             pongRoot.style.display='none';
             tronRoot.style.display='none';
             mmRoot.style.display='none';
-            flappyRoot.style.display='none';
+            simonRoot.style.display='none';
             hub.style.display='block'; 
             currentGameMode=null; 
         }
@@ -1036,153 +1054,135 @@
         function loadPongSystem() { hub.style.display='none'; pongRoot.style.display='flex'; document.getElementById('pongMenu').style.display='block'; document.getElementById('pongGameContainer').style.display='none'; }
         function loadTronSystem() { hub.style.display='none'; tronRoot.style.display='flex'; document.getElementById('tronMenu').style.display='block'; document.getElementById('tronGameContainer').style.display='none'; }
         function loadMastermindSystem() { hub.style.display='none'; mmRoot.style.display='flex'; document.getElementById('mmMenu').style.display='block'; document.getElementById('mmGameContainer').style.display='none'; }
-        function loadFlappySystem() { hub.style.display='none'; flappyRoot.style.display='flex'; document.getElementById('flappyMenu').style.display='block'; document.getElementById('flappyGameContainer').style.display='none'; }
+        function loadSimonSystem() { hub.style.display='none'; simonRoot.style.display='flex'; document.getElementById('simonMenu').style.display='block'; document.getElementById('simonGameContainer').style.display='none'; }
 
         // ============================
-        // === FLAPPY BIRD LOGIC (NEW GRAPHICS + SCORE SAVE) ===
+        // === SIMON GAME LOGIC ===
         // ============================
-        const fCanvas = document.getElementById('flappyCanvas');
-        const fCtx = fCanvas.getContext('2d');
-        const fScoreEl = document.getElementById('fScore');
-        
-        let flappyBird = { x: 50, y: 150, w: 24, h: 24, velocity: 0 }; 
-        let flappyPipes = [];
-        let flappyScore = 0;
-        let flappyLoopId;
-        let flappyFrame = 0;
-        const flappySpeed = 2;
-        let fGameState = 'ready'; 
+        let simonSequence = [];
+        let simonUserStep = 0;
+        let simonScore = 0;
+        let simonActive = false;
+        let simonTurn = 'computer'; // 'computer' or 'player'
+        let currentSimonSpeed = 800;
 
-        function startFlappy() {
-            document.getElementById('flappyMenu').style.display = 'none';
-            document.getElementById('flappyGameContainer').style.display = 'flex';
-            document.getElementById('flappyOverlay').style.display = 'none'; 
-            fCanvas.style.display = 'block';
-            currentGameMode = 'flappy';
-            showMobileControls('action'); 
+        const SIMON_COLORS = ['green', 'red', 'yellow', 'blue', 'purple', 'orange'];
+
+        function startSimon(difficulty) {
+            document.getElementById('simonMenu').style.display = 'none';
+            document.getElementById('simonGameContainer').style.display = 'flex';
+            currentGameMode = 'simon';
+
+            // Reset Logic
+            simonSequence = [];
+            simonUserStep = 0;
+            simonScore = 0;
+            document.getElementById('simonScore').innerText = '0';
+            simonActive = true;
+
+            // Set speed based on difficulty or vault
+            if (difficulty === 'easy') currentSimonSpeed = sConfigSpeed;
+            else if (difficulty === 'medium') currentSimonSpeed = sConfigSpeed * 0.7;
+            else if (difficulty === 'hard') currentSimonSpeed = sConfigSpeed * 0.4;
             
-            flappyBird = { x: 50, y: 300, w: 24, h: 24, velocity: 0 };
-            flappyPipes = [];
-            flappyScore = 0;
-            fScoreEl.innerText = 0;
-            flappyFrame = 0;
-            fGameState = 'ready';
-
-            if(flappyLoopId) cancelAnimationFrame(flappyLoopId);
-            drawFlappy(); 
-            fCtx.fillStyle = "white";
-            fCtx.font = "20px Courier New";
-            fCtx.fillText("Clic ou Espace", 110, 200);
-            fCtx.fillText("pour voler !", 130, 230);
+            // Build Board
+            renderSimonBoard();
+            
+            // Start Game
+            setTimeout(nextSimonRound, 1000);
         }
 
-        function stopFlappy() {
-            if(flappyLoopId) cancelAnimationFrame(flappyLoopId);
+        function renderSimonBoard() {
+            const board = document.getElementById('simonBoard');
+            board.innerHTML = '';
+            
+            // Adjust layout for > 4 colors
+            if (sConfigColors > 4) board.classList.add('six-colors');
+            else board.classList.remove('six-colors');
+
+            for(let i=0; i<sConfigColors; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'simon-btn sb-' + SIMON_COLORS[i];
+                btn.id = 'simon-btn-' + i;
+                btn.onclick = () => handleSimonInput(i);
+                board.appendChild(btn);
+            }
         }
 
-        function loopFlappy() {
-            if(currentGameMode !== 'flappy' || fGameState !== 'playing') return;
+        function nextSimonRound() {
+            if(!simonActive) return;
+            simonTurn = 'computer';
+            document.getElementById('simonStatus').innerText = "Regarde...";
+            document.getElementById('simonStatus').style.color = "#fff";
+            
+            simonUserStep = 0;
+            simonSequence.push(Math.floor(Math.random() * sConfigColors));
+            
+            playSimonSequence();
+        }
 
-            // Physics
-            flappyBird.velocity += fConfigGrav;
-            flappyBird.y += flappyBird.velocity;
-
-            // Collision Sol / Plafond
-            if(flappyBird.y + flappyBird.h >= fCanvas.height - 40 || flappyBird.y <= 0) { 
-                gameOverFlappy();
-                return;
-            }
-
-            // Pipes
-            if(flappyFrame % 180 === 0) { 
-                let topH = Math.random() * (fCanvas.height - fConfigGap - 80) + 40; 
-                flappyPipes.push({ x: fCanvas.width, y: 0, w: 50, h: topH, passed: false });
-                flappyPipes.push({ x: fCanvas.width, y: topH + fConfigGap, w: 50, h: fCanvas.height - (topH + fConfigGap) - 40, passed: false });
-            }
-            flappyFrame++;
-
-            // Move & Check
-            for(let i=0; i<flappyPipes.length; i++) {
-                let p = flappyPipes[i];
-                p.x -= flappySpeed;
-
-                if(flappyBird.x < p.x + p.w && flappyBird.x + flappyBird.w > p.x &&
-                   flappyBird.y < p.y + p.h && flappyBird.y + flappyBird.h > p.y) {
-                    gameOverFlappy();
-                    return;
+        function playSimonSequence() {
+            let i = 0;
+            const interval = setInterval(() => {
+                if(!simonActive) { clearInterval(interval); return; }
+                
+                highlightSimonButton(simonSequence[i]);
+                i++;
+                
+                if(i >= simonSequence.length) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        simonTurn = 'player';
+                        document.getElementById('simonStatus').innerText = "À toi !";
+                        document.getElementById('simonStatus').style.color = "#f1c40f";
+                    }, currentSimonSpeed);
                 }
+            }, currentSimonSpeed);
+        }
 
-                if(p.y === 0 && p.x + p.w < flappyBird.x && !p.passed) {
-                    flappyScore++;
-                    fScoreEl.innerText = flappyScore;
-                    p.passed = true;
+        function highlightSimonButton(index) {
+            const btn = document.getElementById('simon-btn-' + index);
+            if(btn) {
+                btn.classList.add('active');
+                setTimeout(() => {
+                    btn.classList.remove('active');
+                }, currentSimonSpeed / 2);
+            }
+        }
+
+        function handleSimonInput(index) {
+            if(!simonActive || simonTurn !== 'player') return;
+
+            // Visual feedback instant
+            highlightSimonButton(index);
+
+            // Check correctness
+            if(index === simonSequence[simonUserStep]) {
+                simonUserStep++;
+                
+                // End of sequence ?
+                if(simonUserStep >= simonSequence.length) {
+                    simonScore++;
+                    document.getElementById('simonScore').innerText = simonScore;
+                    simonTurn = 'computer';
+                    document.getElementById('simonStatus').innerText = "Bien joué !";
+                    document.getElementById('simonStatus').style.color = "#2ecc71";
+                    setTimeout(nextSimonRound, 1000);
                 }
-            }
-            if(flappyPipes.length > 0 && flappyPipes[0].x < -60) {
-                flappyPipes.shift(); flappyPipes.shift();
-            }
-
-            drawFlappy();
-            flappyLoopId = requestAnimationFrame(loopFlappy);
-        }
-
-        function drawFlappyBackground() {
-            const grd = fCtx.createLinearGradient(0, 0, 0, fCanvas.height);
-            grd.addColorStop(0, "#4fc3f7");
-            grd.addColorStop(1, "#2980b9");
-            fCtx.fillStyle = grd;
-            fCtx.fillRect(0, 0, fCanvas.width, fCanvas.height);
-            fCtx.fillStyle = '#27ae60'; 
-            fCtx.fillRect(0, fCanvas.height - 40, fCanvas.width, 40);
-            fCtx.fillStyle = '#e67e22'; 
-            fCtx.fillRect(0, fCanvas.height - 45, fCanvas.width, 5);
-        }
-
-        function drawFlappyPipesStyled(pipes) {
-            const pipeColor = '#2ecc71';
-            const capColor = '#27ae60';
-            const capHeight = 20;
-            const capOverhang = 4;
-            for(let p of pipes) {
-                 fCtx.fillStyle = pipeColor; fCtx.fillRect(p.x, p.y, p.w, p.h);
-                 fCtx.fillStyle = capColor;
-                 if(p.y === 0) fCtx.fillRect(p.x - capOverhang, p.h - capHeight, p.w + capOverhang*2, capHeight);
-                 else fCtx.fillRect(p.x - capOverhang, p.y, p.w + capOverhang*2, capHeight);
+            } else {
+                gameOverSimon();
             }
         }
 
-        function drawFlappyBirdStyled(x, y, w, h) {
-            const centerX = x + w/2; const centerY = y + h/2; const radius = w/2;
-            fCtx.beginPath(); fCtx.arc(centerX, centerY, radius, 0, Math.PI * 2); fCtx.fillStyle = '#f1c40f'; fCtx.fill(); fCtx.strokeStyle = '#f39c12'; fCtx.lineWidth = 2; fCtx.stroke();
-            fCtx.beginPath(); fCtx.ellipse(centerX - 5, centerY, radius/1.5, radius/2.5, Math.PI / 4, 0, Math.PI * 2); fCtx.fillStyle = '#f39c12'; fCtx.fill();
-            fCtx.beginPath(); fCtx.arc(centerX + radius/2, centerY - radius/4, radius/3, 0, Math.PI*2); fCtx.fillStyle = 'white'; fCtx.fill();
-            fCtx.beginPath(); fCtx.arc(centerX + radius/1.5, centerY - radius/4, radius/6, 0, Math.PI*2); fCtx.fillStyle = 'black'; fCtx.fill();
-            fCtx.beginPath(); fCtx.moveTo(centerX + radius - 2, centerY + 2); fCtx.lineTo(centerX + radius + 8, centerY + 6); fCtx.lineTo(centerX + radius - 2, centerY + 10); fCtx.fillStyle = '#e67e22'; fCtx.fill();
-        }
-
-        function drawFlappy() {
-            drawFlappyBackground();
-            drawFlappyPipesStyled(flappyPipes);
-            drawFlappyBirdStyled(flappyBird.x, flappyBird.y, flappyBird.w, flappyBird.h);
-        }
-
-        function jumpFlappy() {
-            if(fGameState === 'ready') {
-                fGameState = 'playing';
-                flappyBird.velocity = -5;
-                loopFlappy();
-            } else if (fGameState === 'playing') {
-                flappyBird.velocity = -5;
-            }
-        }
-
-        function gameOverFlappy() {
-            fGameState = 'over';
-            stopFlappy();
-            // SAVE SCORE
-            saveHighScore('flappy', flappyScore);
-            document.getElementById('fFinalScore').innerText = flappyScore;
-            document.getElementById('flappyOverlay').style.display = 'block';
+        function gameOverSimon() {
+            simonActive = false;
+            document.getElementById('simonStatus').innerText = "PERDU !";
+            document.getElementById('simonStatus').style.color = "#e74c3c";
+            saveHighScore('simon', simonScore);
+            setTimeout(() => {
+                alert("Game Over Simon ! Score : " + simonScore);
+                backToHub();
+            }, 500);
         }
 
         // ============================
@@ -1849,20 +1849,10 @@
                     if(k==40) { if(tronP2.dy!==-1) tP2NextDir = {dx:0, dy:1}; }
                 }
             }
-
-            // FLAPPY
-            if(currentGameMode === 'flappy') {
-                if(k === 32) jumpFlappy(); // Space
-                if(k === 13 && fGameState === 'over') startFlappy(); // Enter to restart
-            }
         });
         
         tCanvas.addEventListener('click', (e) => {
             if(currentGameMode === 'tetris' && !tGameOver && !tIsAnimating) { e.preventDefault(); playerRotate(); drawTetris(); }
-        });
-
-        document.getElementById('flappyCanvas').addEventListener('click', (e) => {
-            if(currentGameMode === 'flappy') { e.preventDefault(); jumpFlappy(); }
         });
 
         // === SNAKE LOGIC ===
